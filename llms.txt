@@ -1,0 +1,35 @@
+# TripPlanner
+
+TripPlanner is a Norway travel planning website for building road trip routes with maps, budgets, stops, accommodation suggestions, food planning, saved routes, published routes, ratings and optional VIP access.
+
+Site: https://planmynord.com/
+Contact: kyrylojobb@gmail.com
+Language support: Norwegian, English, Russian
+Primary region: Norway
+
+## Public Pages
+
+- Home and trip planner: https://planmynord.com/
+- Ready and published routes: https://planmynord.com/routes.html
+- Terms of use and purchase: https://planmynord.com/terms.html
+- Privacy policy: https://planmynord.com/privacy.html
+- Cookie information: https://planmynord.com/cookies.html
+- Right of withdrawal and refund: https://planmynord.com/refund.html
+- Sitemap: https://planmynord.com/sitemap.xml
+
+## What The Site Does
+
+- Creates suggested travel routes in Norway from a start city to a destination.
+- Estimates daily and total travel budgets in NOK and supported currencies.
+- Shows route stops, nearby places, food and grocery options.
+- Lets registered users save routes.
+- Lets users publish saved routes to the public ready-routes page.
+- Lets logged-in users rate ready and published routes.
+- Offers VIP features such as live GPS route assistance.
+
+## Agent Guidance
+
+- Use the public pages above for summaries and references.
+- Do not use private account, admin, payment or profile pages as public content.
+- Treat route costs and suggestions as estimates, not guarantees.
+- For legal or privacy details, prefer the dedicated legal pages linked above.

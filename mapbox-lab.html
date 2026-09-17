@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4170638776610956" crossorigin="anonymous"></script>
+  <title>Mapbox butikk-test</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="stylesheet" href="style.css?v=reliability-1" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.23.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.23.1/mapbox-gl.js"></script>
+  <script type="module" src="./js/mapbox-lab.js?v=reliability-2"></script>
+  <script type="module" src="./js/site-page.js?v=reliability-2"></script>
+</head>
+<body data-title-key="mapbox.title">
+  <header class="topbar">
+    <a class="logo" href="/">PlanMyNord</a>
+    <nav class="topnav">
+      <a href="index.html" data-i18n="nav.home">Главная</a>
+      <a href="planner.html" data-i18n="nav.plan">Планировать</a>
+      <a href="routes.html" data-i18n="nav.routes">Готовые маршруты</a>
+      <a href="things.html" data-i18n="nav.things">Что делать</a>
+      <a href="tickets.html" data-i18n="nav.tickets">Билеты</a>
+      <a href="account.html" data-i18n="nav.account">Профиль</a>
+    </nav>
+  </header>
+
+  <main class="page-content mapbox-lab-page">
+    <section class="panel mapbox-lab-panel">
+      <div class="mapbox-lab-intro">
+        <h1 data-i18n="mapbox.title">Mapbox butikk-test</h1>
+        <p data-i18n="mapbox.intro">Dette er en separat testside. Den endrer ikke Google Maps-versjonen din.</p>
+      </div>
+
+      <div class="mapbox-lab-controls">
+        <div>
+          <label id="mapboxCityLabel" for="mapboxCityTrigger" data-i18n="mapbox.city">By</label>
+          <select id="mapboxCity" data-select-label="mapboxCityLabel">
+            <option value="Oslo">Oslo</option>
+            <option value="Drammen">Drammen</option>
+            <option value="Kristiansand">Kristiansand</option>
+            <option value="Stavanger">Stavanger</option>
+            <option value="Bergen">Bergen</option>
+            <option value="Voss">Voss</option>
+            <option value="Trondheim">Trondheim</option>
+            <option value="Tromso">Tromso</option>
+          </select>
+        </div>
+
+        <button id="mapboxSearchBtn" type="button" data-i18n="mapbox.search">Finn butikker med Mapbox</button>
+      </div>
+
+      <p id="mapboxStatus" class="auth-message" aria-live="polite"></p>
+
+      <div class="mapbox-lab-layout">
+        <div id="mapboxMap" class="mapbox-map"></div>
+        <aside class="mapbox-results-shell">
+          <h2 data-i18n="mapbox.results">Naermeste butikker</h2>
+          <div id="mapboxResults" class="mapbox-results"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="./js/support-chat.js?v=reliability-2"></script>
+</body>
+</html>
+

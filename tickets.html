@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4170638776610956" crossorigin="anonymous"></script>
+  <title>Билеты до Норвегии</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="stylesheet" href="style.css?v=reliability-1" />
+  <link rel="stylesheet" href="tickets.css?v=desktop-2" />
+  <script type="module" src="./js/tickets-page.js?v=reliability-2"></script>
+</head>
+<body data-title-key="tickets.title">
+  <header class="topbar">
+    <a class="logo" href="/">
+      <img src="assets/logo.svg" alt="" />
+      <span>PlanMyNord</span>
+    </a>
+    <nav class="topnav">
+      <a href="index.html" data-i18n="nav.home">Главная</a>
+      <a href="planner.html" data-i18n="nav.plan">Планировать</a>
+      <a href="routes.html" data-i18n="nav.routes">Готовые маршруты</a>
+      <a href="things.html" data-i18n="nav.things">Что делать</a>
+      <a href="tickets.html" data-i18n="nav.tickets">Билеты</a>
+      <a href="account.html" data-i18n="nav.account">Профиль</a>
+    </nav>
+  </header>
+
+  <main class="tickets-page">
+    <section class="tickets-shell">
+      <div class="tickets-copy">
+        <h1 data-i18n="tickets.kicker">Билеты до Норвегии</h1>
+      </div>
+
+      <form id="ticketSearchForm" class="ticket-search-card">
+        <div class="ticket-form-grid">
+          <label class="ticket-airport-field">
+            <span class="ticket-field-heading" data-i18n="tickets.from">Откуда</span>
+            <input id="ticketFrom" type="text" autocomplete="off" aria-autocomplete="list" aria-controls="ticketAirportSuggestions" aria-expanded="false" data-i18n-placeholder="tickets.fromPlaceholder" placeholder="Например: WAW, Berlin, Kyiv, Istanbul" />
+            <div id="ticketAirportSuggestions" class="ticket-airport-suggestions" role="listbox" hidden></div>
+          </label>
+          <div class="ticket-destination-field">
+            <label class="ticket-field-heading" for="ticketToTrigger" data-i18n="tickets.to">Куда в Норвегии</label>
+            <select id="ticketTo" class="ticket-native-select" tabindex="-1" aria-hidden="true">
+              <option value="Oslo Gardermoen" data-airport="OSL">Oslo Gardermoen (OSL)</option>
+              <option value="Oslo Torp" data-airport="TRF">Oslo Torp/Sandefjord (TRF)</option>
+              <option value="Bergen Flesland" data-airport="BGO">Bergen Flesland (BGO)</option>
+              <option value="Stavanger Sola" data-airport="SVG">Stavanger Sola (SVG)</option>
+              <option value="Trondheim Vaernes" data-airport="TRD">Trondheim Vaernes (TRD)</option>
+              <option value="Tromso Langnes" data-airport="TOS">Tromso Langnes (TOS)</option>
+              <option value="Bodo" data-airport="BOO">Bodo (BOO)</option>
+              <option value="Alesund Vigra" data-airport="AES">Alesund Vigra (AES)</option>
+              <option value="Kristiansand Kjevik" data-airport="KRS">Kristiansand Kjevik (KRS)</option>
+              <option value="Haugesund Karmoy" data-airport="HAU">Haugesund Karmoy (HAU)</option>
+              <option value="Harstad Narvik Evenes" data-airport="EVE">Harstad/Narvik Evenes (EVE)</option>
+              <option value="Alta" data-airport="ALF">Alta (ALF)</option>
+              <option value="Kirkenes Hoybuktmoen" data-airport="KKN">Kirkenes Hoybuktmoen (KKN)</option>
+            </select>
+            <button id="ticketToTrigger" class="ticket-destination-trigger" type="button" aria-haspopup="listbox" aria-controls="ticketDestinationOptions" aria-expanded="false">
+              <span>Oslo Gardermoen</span>
+              <strong>OSL</strong>
+              <i aria-hidden="true"></i>
+            </button>
+            <div id="ticketDestinationOptions" class="ticket-airport-suggestions ticket-destination-options" role="listbox" hidden></div>
+          </div>
+          <div class="ticket-date-field" data-date-picker="depart">
+            <label class="ticket-field-heading" for="ticketDepartTrigger" data-i18n="tickets.depart">Туда</label>
+            <input id="ticketDepart" class="ticket-native-date" type="date" tabindex="-1" aria-hidden="true" />
+            <button id="ticketDepartTrigger" class="ticket-date-trigger" type="button" aria-haspopup="dialog" aria-controls="ticketDepartCalendar" aria-expanded="false">
+              <span></span><i aria-hidden="true"></i>
+            </button>
+            <div id="ticketDepartCalendar" class="ticket-calendar" role="dialog" hidden></div>
+          </div>
+          <div class="ticket-date-field ticket-date-field-return" data-date-picker="return">
+            <label class="ticket-field-heading" for="ticketReturnTrigger" data-i18n="tickets.return">Обратно</label>
+            <input id="ticketReturn" class="ticket-native-date" type="date" tabindex="-1" aria-hidden="true" />
+            <button id="ticketReturnTrigger" class="ticket-date-trigger" type="button" aria-haspopup="dialog" aria-controls="ticketReturnCalendar" aria-expanded="false">
+              <span></span><i aria-hidden="true"></i>
+            </button>
+            <div id="ticketReturnCalendar" class="ticket-calendar" role="dialog" hidden></div>
+          </div>
+          <label>
+            <span class="ticket-field-heading" data-i18n="tickets.passengers">Пассажиры</span>
+            <input id="ticketPassengers" type="number" min="1" max="9" value="1" />
+          </label>
+          <div class="ticket-trip-type-field">
+            <label class="ticket-field-heading" for="ticketTripTypeTrigger" data-i18n="tickets.tripType">Тип поездки</label>
+            <select id="ticketTripType" class="ticket-native-select" tabindex="-1" aria-hidden="true">
+              <option value="round" data-i18n="tickets.roundTrip">Туда-обратно</option>
+              <option value="oneway" data-i18n="tickets.oneWay">В одну сторону</option>
+            </select>
+            <button id="ticketTripTypeTrigger" class="ticket-trip-type-trigger" type="button" aria-haspopup="listbox" aria-controls="ticketTripTypeOptions" aria-expanded="false">
+              <strong aria-hidden="true">↔</strong><span></span><i aria-hidden="true"></i>
+            </button>
+            <div id="ticketTripTypeOptions" class="ticket-trip-type-options" role="listbox" hidden></div>
+          </div>
+        </div>
+        <button type="submit" data-i18n="tickets.search">Подготовить поиск</button>
+      </form>
+    </section>
+
+    <section class="ticket-results-panel">
+      <div>
+        <p class="home-kicker" data-i18n="tickets.resultsKicker">Поиск</p>
+        <h2 data-i18n="tickets.resultsTitle">Сравни на нескольких сайтах</h2>
+      </div>
+      <div id="ticketSearchSummary" class="ticket-search-summary" aria-live="polite" data-i18n="tickets.empty">Заполни форму, и здесь появятся быстрые ссылки.</div>
+      <div id="ticketSearchLinks" class="ticket-link-grid"></div>
+    </section>
+
+    <section class="ticket-advice-grid">
+      <article>
+        <strong data-i18n="tickets.tipFlexTitle">Проверь соседние даты</strong>
+        <p data-i18n="tickets.tipFlexText">В Норвегию цена часто сильно меняется на 1-3 дня рядом с выбранной датой.</p>
+      </article>
+      <article>
+        <strong data-i18n="tickets.tipAirportTitle">Смотри несколько аэропортов</strong>
+        <p data-i18n="tickets.tipAirportText">Для юга Норвегии иногда выгоднее прилететь в Oslo, Bergen, Stavanger или Trondheim и дальше ехать поездом.</p>
+      </article>
+      <article>
+        <strong data-i18n="tickets.tipBaggageTitle">Не забудь багаж</strong>
+        <p data-i18n="tickets.tipBaggageText">Дешёвый билет может стать дорогим, если отдельно добавить чемодан и выбор места.</p>
+      </article>
+    </section>
+  </main>
+
+  <nav class="legal-floating" aria-label="Juridiske lenker">
+    <a href="terms.html">Vilkår</a>
+    <a href="privacy.html">Personvern</a>
+    <a href="cookies.html">Cookies</a>
+    <a href="about.html" data-i18n="nav.about">О проекте</a>
+    <a href="refund.html">Angrerett</a>
+  </nav>
+  <script type="module" src="./js/support-chat.js?v=reliability-2"></script>
+</body>
+</html>
+
+

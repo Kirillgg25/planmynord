@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planlegg reisen din i Norge | PlanMyNord</title>
+  <meta name="description" content="Bygg en realistisk reiserute gjennom Norge med dagsplan, avstander, kj&oslash;retid, overnatting og kostnadsestimat." />
+  <link rel="canonical" href="https://planmynord.com/planner.html" />
+  <meta property="og:title" content="Planlegg Norgesreisen | PlanMyNord" />
+  <meta property="og:description" content="F&aring; en realistisk dagsplan med kj&oslash;retid og omtrentlige kostnader." />
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="stylesheet" href="style.css?v=reliability-1" />
+  <link rel="stylesheet" href="planner-layout.css?v=footer-3" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.23.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.23.1/mapbox-gl.js"></script>
+  <script type="module" src="./js/main.js?v=reliability-2"></script>
+</head>
+<body data-title-key="index.title">
+  <header class="topbar">
+    <a class="logo" href="/" aria-label="PlanMyNord — forsiden">PlanMyNord</a>
+    <nav class="topnav">
+      <a href="index.html" data-i18n="nav.home">Главная</a>
+      <a href="planner.html" data-i18n="nav.plan">Планировать</a>
+      <a href="routes.html" data-i18n="nav.routes">Готовые маршруты</a>
+      <a href="things.html" data-i18n="nav.things">Что делать</a>
+      <a href="tickets.html" data-i18n="nav.tickets">Билеты</a>
+      <a href="account.html" data-i18n="nav.account">Профиль</a>
+    </nav>
+  </header>
+  <div class="app map-peek" id="plannerApp">
+    <aside class="sidebar">
+      <header class="sidebar-header">
+        <h1 data-i18n="index.title">Planlegg reisen din i Norge</h1>
+        <p data-i18n="index.heroText">
+          Velg startsted, sluttsted, antall dager og budsjett. Nettsiden lager et enkelt forslag
+          til reiserute med stopp, overnatting, mat og omtrentlige kostnader.
+        </p>
+      </header>
+
+      <section class="panel">
+        <h2 data-i18n="planner.title">Trip planner</h2>
+
+        <div class="form-grid">
+          <div>
+            <label for="start" data-i18n="planner.start">Start</label>
+            <input type="hidden" id="start" value="Oslo" />
+            <button
+              id="startPickerButton"
+              type="button"
+              class="place-picker-trigger"
+              data-place-target="start"
+            >
+              Oslo
+            </button>
+          </div>
+
+          <div class="route-stop-builder">
+            <div id="routeStopList" class="route-stop-list"></div>
+            <button
+              id="addRouteStopBtn"
+              type="button"
+              class="route-stop-add-button"
+              aria-label="Add stop"
+              data-i18n-aria="planner.addViaCity"
+              data-i18n-title="planner.addViaCity"
+            >
+              <span>+</span>
+              <strong data-i18n="planner.addViaCity">Add stop</strong>
+            </button>
+          </div>
+
+          <div>
+            <label for="end" data-i18n="planner.end">Destination</label>
+            <input type="hidden" id="end" value="Bergen" />
+            <button
+              id="endPickerButton"
+              type="button"
+              class="place-picker-trigger"
+              data-place-target="end"
+            >
+              Bergen
+            </button>
+          </div>
+
+          <div class="planner-date-field" data-planner-date="start">
+            <label for="startDateTrigger" data-i18n="planner.startDate">Start date</label>
+            <input class="planner-native-date" type="date" id="startDate" tabindex="-1" aria-hidden="true" />
+            <button id="startDateTrigger" class="ticket-date-trigger planner-date-trigger" type="button" aria-haspopup="dialog" aria-controls="startDateCalendar" aria-expanded="false">
+              <span></span><i aria-hidden="true"></i>
+            </button>
+            <div id="startDateCalendar" class="ticket-calendar planner-calendar" role="dialog" hidden></div>
+          </div>
+
+          <div class="planner-date-field planner-date-field-end" data-planner-date="end">
+            <label for="endDateTrigger" data-i18n="planner.endDate">End date</label>
+            <input class="planner-native-date" type="date" id="endDate" tabindex="-1" aria-hidden="true" />
+            <button id="endDateTrigger" class="ticket-date-trigger planner-date-trigger" type="button" aria-haspopup="dialog" aria-controls="endDateCalendar" aria-expanded="false">
+              <span></span><i aria-hidden="true"></i>
+            </button>
+            <div id="endDateCalendar" class="ticket-calendar planner-calendar" role="dialog" hidden></div>
+          </div>
+
+          <div>
+            <label for="budget" data-i18n="planner.budget">Budget</label>
+            <input type="number" id="budget" min="500" step="100" value="5000" />
+          </div>
+
+          <div>
+            <label for="people" data-i18n="planner.people">People</label>
+            <input type="number" id="people" min="1" max="12" step="1" value="2" />
+          </div>
+        </div>
+
+        <label class="feature-toggle" for="carRentalEnabled">
+          <input id="carRentalEnabled" type="checkbox" />
+          <span data-i18n="planner.car">Enable rental car</span>
+        </label>
+
+        <button id="planBtn" data-i18n="planner.create">Create trip plan</button>
+      </section>
+
+      <section class="panel result-section">
+        <h2 data-i18n="result.title">Suggested trip plan</h2>
+        <p id="plannerStatus" class="auth-message" aria-live="polite"></p>
+        <div id="readyRouteSuggestions" class="ready-route-suggestions" aria-live="polite"></div>
+        <div class="summary-box" id="summary"></div>
+        <div id="tripPlan"></div>
+        <div id="planActions" class="action-row" hidden>
+          <button id="savePlanBtn" type="button" data-i18n="actions.save">Сохранить маршрут</button>
+          <button id="carRentalBtn" type="button" class="secondary-button" hidden data-i18n="actions.car">Open rental car</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 data-i18n="recommendations.title">Recommendations</h2>
+        <div id="recommendations"></div>
+      </section>
+
+      <section class="panel">
+        <h2 data-i18n="tips.title">Tips</h2>
+        <ul>
+          <li data-i18n="tips.food">Buy food in grocery stores to save money.</li>
+          <li data-i18n="tips.sleep">Use camping or hostels when the budget is tight.</li>
+          <li data-i18n="tips.plan">Plan stops before you drive.</li>
+          <li data-i18n="tips.power">Bring a water bottle and power bank.</li>
+        </ul>
+      </section>
+    </aside>
+
+    <main class="map-area">
+      <button id="mapPreviewToggle" type="button" class="map-preview-toggle" aria-expanded="false">
+        <span data-i18n="map.preview">Карта</span>
+      </button>
+      <div class="map-style-switcher" aria-label="Kartstil">
+        <button type="button" class="map-style-btn active" data-map-style="streets" data-i18n="map.light">Light</button>
+        <button type="button" class="map-style-btn" data-map-style="satellite" data-i18n="map.satellite">Satellite</button>
+        <button type="button" class="map-style-btn" data-map-style="dark" data-i18n="map.dark">Dark</button>
+      </div>
+      <div id="map"></div>
+    </main>
+    <aside id="storeDrawer" class="store-drawer" hidden>
+      <div class="store-drawer-header">
+        <div>
+          <p id="storeDrawerKicker" class="store-kicker" data-i18n="store.kicker">Store and food</p>
+          <h2 id="storeDrawerTitle" data-i18n="store.chooseCity">Choose a city</h2>
+        </div>
+        <button id="closeStoreDrawer" type="button" class="icon-close-button" aria-label="Close store panel">&times;</button>
+      </div>
+
+      <div id="storeDrawerBody" class="store-drawer-body">
+        <p data-i18n="store.empty">Click Store on a day to see address and shopping ideas.</p>
+      </div>
+    </aside>
+  </div>
+
+  <div id="placePickerOverlay" class="place-picker-overlay" hidden>
+    <section class="place-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="placePickerTitle">
+      <div class="place-picker-header">
+        <h2 id="placePickerTitle" data-i18n="picker.title">Choose place</h2>
+        <button id="closePlacePicker" type="button" class="icon-close-button" aria-label="Lukk stedvalg">&times;</button>
+      </div>
+      <input id="placeSearchInput" type="search" placeholder="Search county or city" data-i18n-placeholder="picker.search" autocomplete="off" />
+      <div id="placePickerResults" class="place-picker-results"></div>
+    </section>
+  </div>
+  <nav class="legal-floating planner-footer" aria-label="Juridiske lenker">
+    <a href="terms.html">Vilkår</a>
+    <a href="privacy.html">Personvern</a>
+    <a href="cookies.html">Cookies</a>
+    <a href="about.html" data-i18n="nav.about">О проекте</a>
+    <a href="refund.html">Angrerett</a>
+  </nav>
+  <script type="module" src="./js/support-chat.js?v=planner-footer-3"></script>
+</body>
+</html>
+

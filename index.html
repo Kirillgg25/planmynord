@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlanMyNord — realistisk reiseplanlegger for Norge</title>
+  <meta name="description" content="Lag en realistisk reiserute gjennom Norge basert på datoer, budsjett og transport. Få dagsplan, kj&oslash;retid og et tydelig kostnadsestimat." />
+  <link rel="canonical" href="https://planmynord.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="PlanMyNord — Norway Trip Planner" />
+  <meta property="og:description" content="Planlegg en realistisk Norgesreise med dagsplan, kj&oslash;retid og kostnadsestimat." />
+  <meta property="og:url" content="https://planmynord.com/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "PlanMyNord",
+      "url": "https://planmynord.com/",
+      "applicationCategory": "TravelApplication",
+      "operatingSystem": "Web",
+      "description": "A Norway trip planner with day-by-day routes, driving-time checks and estimated travel costs.",
+      "inLanguage": ["no", "en", "ru"]
+    }
+  </script>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="stylesheet" href="style.css?v=reliability-1" />
+  <script type="module" src="./js/home-page.js?v=reliability-2"></script>
+</head>
+<body data-title-key="home.title">
+  <header class="topbar">
+    <a class="logo" href="/" aria-label="PlanMyNord — forsiden">
+      <img src="assets/logo.svg" alt="PlanMyNord" />
+      <span>PlanMyNord</span>
+    </a>
+    <a class="home-mobile-plan" href="planner.html" data-i18n="nav.plan">Planlegg</a>
+    <nav id="homeNavigation" class="topnav" aria-label="Hovedmeny">
+      <a href="index.html" data-i18n="nav.home">Главная</a>
+      <a href="planner.html" data-i18n="nav.plan">Планировать</a>
+      <a href="routes.html" data-i18n="nav.routes">Готовые маршруты</a>
+      <a href="things.html" data-i18n="nav.things">Что делать</a>
+      <a href="tickets.html" data-i18n="nav.tickets">Билеты</a>
+      <a href="account.html" data-i18n="nav.account">Профиль</a>
+    </nav>
+    <button id="homeNavToggle" class="home-nav-toggle" type="button" aria-expanded="false" aria-controls="homeNavigation" aria-label="Åpne meny">
+      <span aria-hidden="true"></span>
+    </button>
+  </header>
+
+  <main class="home-page">
+    <section class="home-hero">
+      <div class="home-hero-copy">
+        <p class="home-kicker" data-i18n="home.kicker">Norway Trip Planner</p>
+        <h1 data-i18n="home.heading">Lag en realistisk reiserute gjennom Norge</h1>
+        <p data-i18n="home.intro">
+          Basert p&aring; datoer, budsjett og transport f&aring;r du en dagsplan med realistiske etapper og omtrentlige kostnader.
+        </p>
+        <ul class="home-proof-list" aria-label="PlanMyNord fordeler">
+          <li data-i18n="home.proofDays">En rute du kan f&oslash;lge dag for dag</li>
+          <li data-i18n="home.proofCost">Et tydelig kostnadsestimat per kategori</li>
+          <li data-i18n="home.proofRealistic">Varsel n&aring;r en kj&oslash;reetappe blir for lang</li>
+        </ul>
+        <div class="home-actions">
+          <a class="primary-link-button" href="planner.html" data-i18n="home.planCta">Создать маршрут</a>
+          <a class="secondary-link-button" href="routes.html" data-i18n="home.demoCta">Se eksempelruten</a>
+        </div>
+      </div>
+
+      <div class="home-map-card" aria-label="Route preview">
+        <div class="home-route-preview-header">
+          <div>
+            <span data-i18n="home.routePreviewKicker">Пример маршрута</span>
+            <strong>Oslo → Fl&aring;m → Bergen</strong>
+          </div>
+          <span class="home-route-type" data-i18n="home.demoTransport">На автомобиле</span>
+        </div>
+        <div class="home-route-board" role="img" aria-label="Oslo til Flåm og Bergen langs fjorden">
+          <img class="home-route-photo" src="assets/norway-route-card-v2.webp" alt="Vei langs en norsk fjord" />
+          <div class="home-route-shade"></div>
+          <svg class="home-route-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path class="home-route-halo" d="M 82 76 C 70 61, 65 38, 53 28 S 30 42, 18 68" />
+            <path class="home-route-path" d="M 82 76 C 70 61, 65 38, 53 28 S 30 42, 18 68" />
+          </svg>
+          <span class="home-map-pin home-map-pin-oslo"><b>1</b>Oslo</span>
+          <span class="home-map-pin home-map-pin-flam"><b>2</b>Fl&aring;m</span>
+          <span class="home-map-pin home-map-pin-bergen"><b>3</b>Bergen</span>
+          <span class="home-route-duration"><strong>5</strong><span data-i18n="home.demoDays">dager</span></span>
+        </div>
+        <div class="home-demo-stats">
+          <span><small data-i18n="home.demoDistance">estimert</small><strong>575 km</strong></span>
+          <span><small data-i18n="home.demoDrive">kj&oslash;ring</small><strong>8 t 40 min</strong></span>
+          <span><small data-i18n="summary.budget">Budsjett</small><strong data-i18n="home.demoBudget">fra 9 800 NOK</strong></span>
+        </div>
+        <div class="home-demo-itinerary">
+          <div><span data-i18n="home.demoLeg1">Dag 1–2</span><strong>Oslo → Fl&aring;m</strong><small>5 t 45 min</small></div>
+          <div><span data-i18n="home.demoLeg2">Dag 3–5</span><strong>Fl&aring;m → Bergen</strong><small>2 t 55 min</small></div>
+        </div>
+        <p class="home-data-note"><span class="home-data-status" aria-hidden="true"></span><strong data-i18n="home.demoReady">Реалистичный темп</strong><span data-i18n="home.demoEstimateNote">Расстояние и бюджет — предварительная оценка.</span></p>
+      </div>
+    </section>
+
+    <section class="home-feature-grid" aria-label="PlanMyNord features">
+      <a class="home-feature-card" href="planner.html">
+        <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="6" cy="23" r="3"/><circle cx="16" cy="10" r="3"/><circle cx="26" cy="20" r="3"/><path d="M8.5 20.8 13.7 12.4M18.8 11.5l4.8 6.3"/></svg></span>
+        <span data-i18n="home.cardPlanKicker">Маршрут</span>
+        <strong data-i18n="home.cardPlanTitle">План по дням</strong>
+        <p data-i18n="home.cardPlanText">Старт, финиш, остановки, бюджет, ночёвки и примерная стоимость.</p>
+      </a>
+      <a class="home-feature-card" href="routes.html">
+        <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m4 8 7-3 10 3 7-3v19l-7 3-10-3-7 3Z"/><path d="M11 5v19M21 8v19"/></svg></span>
+        <span data-i18n="home.cardRoutesKicker">Идеи</span>
+        <strong data-i18n="home.cardRoutesTitle">Готовые маршруты</strong>
+        <p data-i18n="home.cardRoutesText">Быстрые варианты для тех, кто хочет начать не с пустого листа.</p>
+      </a>
+      <a class="home-feature-card" href="things.html">
+        <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M25 13c0 7-9 15-9 15S7 20 7 13a9 9 0 1 1 18 0Z"/><circle cx="16" cy="13" r="3"/></svg></span>
+        <span data-i18n="home.cardThingsKicker">Города</span>
+        <strong data-i18n="home.cardThingsTitle">Что делать на месте</strong>
+        <p data-i18n="home.cardThingsText">Погода, культура, привычки, еда, районы и места для прогулки.</p>
+      </a>
+      <a class="home-feature-card" href="tickets.html">
+        <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 20h22l-2 5H8Z"/><path d="M9 20V9h11l5 6v5M12 25v3M22 25v3"/><circle cx="12" cy="15" r="1"/><circle cx="19" cy="15" r="1"/></svg></span>
+        <span data-i18n="home.cardTicketsKicker">До Норвегии</span>
+        <strong data-i18n="home.cardTicketsTitle">Поиск билетов</strong>
+        <p data-i18n="home.cardTicketsText">Собери запрос и открой поиск на нескольких билетных сервисах.</p>
+      </a>
+    </section>
+  </main>
+
+  <footer class="legal-footer home-footer">
+    <div class="legal-footer-brand">
+      <strong>PlanMyNord</strong>
+      <p data-i18n="footer.description">Planlegger for Norgesreiser med kart, budsjett, stopp og praktiske dagsplaner.</p>
+    </div>
+    <div class="legal-footer-info">
+      <span data-i18n="footer.creator">Skaper: Kyrylo Hladuntsov</span>
+      <a href="mailto:kyrylojobb@gmail.com">kyrylojobb@gmail.com</a>
+    </div>
+    <nav class="legal-footer-links" aria-label="Juridiske lenker">
+      <a href="terms.html" data-i18n="footer.terms">Vilkår</a>
+      <a href="privacy.html" data-i18n="footer.privacy">Personvern</a>
+      <a href="cookies.html">Cookies</a>
+      <a href="about.html" data-i18n="nav.about">О проекте</a>
+      <a href="refund.html" data-i18n="footer.refund">Angrerett</a>
+    </nav>
+  </footer>
+  <script type="module" src="./js/support-chat.js?v=reliability-2"></script>
+</body>
+</html>
+
+

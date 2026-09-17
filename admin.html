@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4170638776610956" crossorigin="anonymous"></script>
+  <title>Admin</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="stylesheet" href="style.css?v=reliability-1" />
+</head>
+<body class="admin-dark" data-title-key="admin.title">
+  <header class="topbar">
+    <a class="logo" href="/">PlanMyNord</a>
+    <nav class="topnav">
+      <a href="index.html" data-i18n="nav.home">Главная</a>
+      <a href="planner.html" data-i18n="nav.plan">Планировать</a>
+      <a href="routes.html" data-i18n="nav.routes">Готовые маршруты</a>
+      <a href="things.html" data-i18n="nav.things">Что делать</a>
+      <a href="tickets.html" data-i18n="nav.tickets">Билеты</a>
+      <a href="account.html" data-i18n="nav.account">Профиль</a>
+    </nav>
+  </header>
+
+  <main id="adminPageContent" class="page-content admin-page" hidden>
+    <section class="panel admin-shell">
+      <div class="admin-header">
+        <div>
+          <h1 data-i18n="admin.title">Admin</h1>
+          <p id="adminMessage" class="auth-message" aria-live="polite" data-i18n="admin.loading">Loading admin panel...</p>
+        </div>
+        <button id="refreshAdminBtn" type="button" class="secondary-button admin-refresh" data-i18n="admin.refresh">Refresh</button>
+      </div>
+      
+
+      <div class="admin-summary-grid" aria-label="Admin overview">
+        <div class="admin-metric">
+          <span data-i18n="admin.users">Users</span>
+          <strong id="usersCount">0</strong>
+        </div>
+        <div class="admin-metric">
+          <span data-i18n="admin.admins">Admins</span>
+          <strong id="adminsCount">0</strong>
+        </div>
+        <div class="admin-metric">
+          <span data-i18n="admin.savedRoutes">Saved routes</span>
+          <strong id="routesCount">0</strong>
+        </div>
+        <div class="admin-metric">
+          <span data-i18n="admin.vipUsers">Supporters</span>
+          <strong id="vipUsersCount">0</strong>
+        </div>
+        <div class="admin-metric">
+          <span data-i18n="admin.paidPayments">Paid payments</span>
+          <strong id="paidPaymentsCount">0</strong>
+        </div>
+      </div>
+
+      <section class="admin-section">
+        <div class="admin-section-heading">
+          <h2 data-i18n="admin.users">Users</h2>
+        </div>
+        <div id="adminUsers" class="admin-table-wrap">
+          <p class="admin-empty" data-i18n="admin.loadingUsers">Loading users...</p>
+        </div>
+      </section>
+
+      <section class="admin-section">
+        <div class="admin-section-heading">
+          <h2 data-i18n="admin.vipPayments">Support payments</h2>
+        </div>
+        <div id="adminPayments" class="admin-table-wrap">
+          <p class="admin-empty">Loading payments...</p>
+        </div>
+      </section>
+
+      <section class="admin-section">
+        <div class="admin-section-heading">
+          <h2 data-i18n="admin.routes">Routes</h2>
+        </div>
+        <div id="adminRoutes" class="admin-table-wrap">
+          <p class="admin-empty" data-i18n="admin.loadingRoutes">Loading routes...</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="./js/admin.js?v=reliability-2"></script>
+  <script type="module" src="./js/support-chat.js?v=reliability-2"></script>
+</body>
+</html>
+
+
+

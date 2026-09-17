@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4170638776610956" crossorigin="anonymous"></script>
+  <title>Ting å gjøre i Norge | PlanMyNord</title>
+  <meta name="description" content="Velg en norsk by og få et praktisk forslag til oppholdet med værmelding, dagsplan, severdigheter, mat, overnatting og pakkeliste." />
+  <link rel="canonical" href="https://planmynord.com/things.html" />
+  <meta property="og:title" content="Ting å gjøre i Norge | PlanMyNord" />
+  <meta property="og:description" content="Praktiske byguider for Norge med vær, dagsplan og lokale tips." />
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.23.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.23.1/mapbox-gl.js"></script>
+  <link rel="stylesheet" href="style.css?v=reliability-1" />
+  <script type="module" src="./js/things-page.js?v=reliability-2"></script>
+</head>
+<body data-title-key="things.title">
+  <header class="topbar">
+    <a class="logo" href="/">PlanMyNord</a>
+    <nav class="topnav">
+      <a href="index.html" data-i18n="nav.home">Главная</a>
+      <a href="planner.html" data-i18n="nav.plan">Планировать</a>
+      <a href="routes.html" data-i18n="nav.routes">Готовые маршруты</a>
+      <a href="things.html" data-i18n="nav.things">Что делать</a>
+      <a href="tickets.html" data-i18n="nav.tickets">Билеты</a>
+      <a href="account.html" data-i18n="nav.account">Профиль</a>
+    </nav>
+  </header>
+
+  <main class="page-content things-page">
+    <section class="things-hero">
+      <div>
+        <p class="things-kicker" data-i18n="things.kicker">Byguider</p>
+        <h1 data-i18n="things.title">Finn ting å gjøre i Norge</h1>
+        <p data-i18n="things.intro">Velg en by og få et praktisk forslag til oppholdet – med værmelding, dagsplan, severdigheter, mat, overnatting og pakkeliste.</p>
+      </div>
+      <div class="things-city-select">
+        <span id="thingsCityLabel" data-i18n="things.chooseCity">Velg by</span>
+        <input id="thingsCitySearch" type="search" placeholder="Søk etter by" aria-label="Søk etter by" />
+        <select id="thingsCitySelect" data-select-label="thingsCityLabel"></select>
+      </div>
+    </section>
+
+    <section class="things-trip-controls" aria-label="Tilpass turen">
+      <div class="things-trip-control"><span id="thingsDaysLabel">Antall dager</span><select id="thingsDays" data-select-label="thingsDaysLabel"><option value="1">1 dag</option><option value="2" selected>2 dager</option><option value="3">3 dager</option></select></div>
+      <div class="things-trip-control things-date-field">
+        <span id="thingsDateLabel">Startdato</span>
+        <input id="thingsDate" type="date" hidden />
+        <button id="thingsDateTrigger" class="ticket-date-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-labelledby="thingsDateLabel thingsDateTrigger">
+          <span>—</span>
+          <i aria-hidden="true"></i>
+        </button>
+        <div id="thingsDateCalendar" class="ticket-calendar things-calendar" role="dialog" hidden></div>
+      </div>
+      <div class="things-trip-control"><span id="thingsBudgetLabel">Budsjett</span><select id="thingsBudget" data-select-label="thingsBudgetLabel"><option value="low">Rimelig</option><option value="medium" selected>Middels</option><option value="comfortable">Komfortabelt</option></select></div>
+      <label class="things-check"><input id="thingsCar" type="checkbox" /><span>Jeg har bil</span></label>
+      <fieldset class="things-interests">
+        <legend>Interesser</legend>
+        <label><input type="checkbox" name="thingsInterest" value="history" checked /><span>Historie</span></label>
+        <label><input type="checkbox" name="thingsInterest" value="nature" checked /><span>Natur</span></label>
+        <label><input type="checkbox" name="thingsInterest" value="food" /><span>Mat</span></label>
+        <label><input type="checkbox" name="thingsInterest" value="family" /><span>Familie</span></label>
+        <label><input type="checkbox" name="thingsInterest" value="nightlife" /><span>Uteliv</span></label>
+      </fieldset>
+    </section>
+
+    <section class="things-layout">
+      <aside class="things-weather-card">
+        <p class="things-section-label" data-i18n="things.weather">Værmelding</p>
+        <div id="thingsWeather"></div>
+      </aside>
+
+      <section class="things-main-card">
+        <div class="things-city-header">
+          <div>
+            <p class="things-section-label" data-i18n="things.plan">Forslag til opphold</p>
+            <h2 id="thingsCityTitle">Oslo</h2>
+          </div>
+          <strong id="thingsDaysBadge" class="things-days-badge"></strong>
+        </div>
+        <div class="things-city-actions">
+          <p id="thingsPlanSummary">En konkret plan med tider, transport og kostnader.</p>
+          <button id="thingsAddToTrip" type="button" class="primary-btn">Legg denne byen til reisen</button>
+        </div>
+        <div id="thingsContent" class="things-content-grid"></div>
+      </section>
+    </section>
+  </main>
+
+  <nav class="legal-floating" aria-label="Juridiske lenker">
+    <a href="terms.html">Vilkår</a>
+    <a href="privacy.html">Personvern</a>
+    <a href="cookies.html">Cookies</a>
+    <a href="about.html" data-i18n="nav.about">О проекте</a>
+    <a href="refund.html">Angrerett</a>
+  </nav>
+  <script type="module" src="./js/support-chat.js?v=reliability-2"></script>
+</body>
+</html>
+

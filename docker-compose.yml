@@ -1,0 +1,21 @@
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    container_name: tripplanner-postgis
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tripplanner_geo
+      POSTGRES_USER: tripplanner
+      POSTGRES_PASSWORD: tripplanner_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - tripplanner_postgis_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tripplanner -d tripplanner_geo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tripplanner_postgis_data:
