@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="TripPlanner">
+  <defs>
+    <linearGradient id="sky" x1="12" y1="8" x2="52" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="38" y1="13" x2="50" y2="25" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#0f172a"/>
+  <path d="M12 43 24 27l9 11 7-8 12 13v5H12z" fill="#dbeafe"/>
+  <path d="M12 43 24 27l9 11 7-8 12 13v5H12z" fill="url(#sky)" opacity=".72"/>
+  <circle cx="45" cy="19" r="7" fill="url(#sun)"/>
+  <path d="M33 14c-8.3 0-15 6.7-15 15 0 10.7 15 23 15 23s15-12.3 15-23c0-8.3-6.7-15-15-15zm0 21a6 6 0 1 1 0-12 6 6 0 0 1 0 12z" fill="#fff"/>
+  <circle cx="33" cy="29" r="4" fill="#2563eb"/>
+</svg>

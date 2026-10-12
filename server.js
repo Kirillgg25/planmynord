@@ -11,7 +11,10 @@ const https = require("https");
 const path = require("path");
 const nodemailer = require("nodemailer");
 const { createHmac, randomUUID, timingSafeEqual } = require("crypto");
+const { Provider: OidcProvider } = require("oidc-provider");
 const { scheduleDailyR2Backup } = require("./lib/r2-backup");
+const { preparePublicSite, publicSiteMiddleware } = require("./lib/public-site");
+const PUBLIC_DIR = preparePublicSite(__dirname);
 let Database;
 let PgPool;
 
@@ -78,12 +81,22 @@ const GOOGLE_REDIRECT_URI =
   process.env.GOOGLE_REDIRECT_URI || `${APP_BASE_URL}/auth/google/callback`;
 const GOOGLE_OAUTH_TIMEOUT_MS = 12000;
 const googleOAuthConfigured = Boolean(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
+const OIDC_ISSUER = process.env.OIDC_ISSUER || `${APP_BASE_URL.replace(/\/$/, "")}/oidc`;
+const OIDC_JWKS = process.env.OIDC_JWKS || "";
+const OIDC_STORAGE_DIR = process.env.OIDC_STORAGE_DIR || "";
+const OIDC_CLIENT_ID = process.env.COMMONPLACE_OIDC_CLIENT_ID || "";
+const OIDC_CLIENT_SECRET = process.env.COMMONPLACE_OIDC_CLIENT_SECRET || "";
+const OIDC_REDIRECT_URI = process.env.COMMONPLACE_OIDC_REDIRECT_URI || "http://127.0.0.1:3100/api/auth/oidc/callback";
+const OIDC_DESKTOP_CLIENT_ID = process.env.COMMONPLACE_DESKTOP_CLIENT_ID || "commonplace-desktop";
+const OIDC_DESKTOP_REDIRECT_URI = process.env.COMMONPLACE_DESKTOP_REDIRECT_URI || "com.commonplace.finance://oauth2redirect";
+let oidcProvider;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
 const OPENAI_TIMEOUT_MS = 16000;
 const POSTGIS_DATABASE_URL = process.env.POSTGIS_DATABASE_URL || "";
 const POSTGIS_CACHE_TTL_HOURS = Math.max(Number(process.env.POSTGIS_CACHE_TTL_HOURS) || 168, 1);
 let db;
+let oidcDb;
 let postgisPool;
 let postgisReadyPromise;
 let postgisDisabledReason = "";
@@ -176,6 +189,72 @@ class SqliteSessionStore extends session.Store {
   }
 }
 
+class SqliteOidcAdapter {
+  constructor(model) {
+    this.model = model;
+  }
+
+  async upsert(id, payload, expiresIn) {
+    const expiresAt = typeof expiresIn === "number" ? Date.now() + expiresIn * 1000 : null;
+    openOidcDatabase().prepare(`
+      INSERT INTO oidc_adapter(model,id,payload_json,expires_at) VALUES(?,?,?,?)
+      ON CONFLICT(model,id) DO UPDATE SET payload_json=excluded.payload_json,expires_at=excluded.expires_at
+    `).run(this.model, id, JSON.stringify(payload), expiresAt);
+  }
+
+  async find(id) {
+    const row = openOidcDatabase().prepare(
+      "SELECT payload_json,expires_at FROM oidc_adapter WHERE model=? AND id=?"
+    ).get(this.model, id);
+    if (!row) return undefined;
+    if (row.expires_at && row.expires_at <= Date.now()) {
+      await this.destroy(id);
+      return undefined;
+    }
+    return JSON.parse(row.payload_json);
+  }
+
+  async findByUid(uid) {
+    const row = openOidcDatabase().prepare(
+      "SELECT id FROM oidc_adapter WHERE model='Session' AND json_extract(payload_json,'$.uid')=? LIMIT 1"
+    ).get(uid);
+    return row ? this.find(row.id) : undefined;
+  }
+
+  async findByUserCode(userCode) {
+    const row = openOidcDatabase().prepare(
+      "SELECT id FROM oidc_adapter WHERE model=? AND json_extract(payload_json,'$.userCode')=? LIMIT 1"
+    ).get(this.model, userCode);
+    return row ? this.find(row.id) : undefined;
+  }
+
+  async consume(id) {
+    const payload = await this.find(id);
+    if (payload) {
+      payload.consumed = Math.floor(Date.now() / 1000);
+      openOidcDatabase().prepare("UPDATE oidc_adapter SET payload_json=? WHERE model=? AND id=?")
+        .run(JSON.stringify(payload), this.model, id);
+    }
+  }
+
+  async destroy(id) {
+    openOidcDatabase().prepare("DELETE FROM oidc_adapter WHERE model=? AND id=?").run(this.model, id);
+  }
+
+  async revokeByGrantId(grantId) {
+    const rows = openOidcDatabase().prepare("SELECT model,id,payload_json FROM oidc_adapter").all();
+    const remove = rows.filter((row) => {
+      if (!/Token|Code|Request/.test(row.model)) return false;
+      try { return JSON.parse(row.payload_json).grantId === grantId; } catch { return false; }
+    });
+    const deleteRow = openOidcDatabase().prepare("DELETE FROM oidc_adapter WHERE model=? AND id=?");
+    const removeGrant = openDatabase().transaction(() => {
+      for (const row of remove) deleteRow.run(row.model, row.id);
+    });
+    removeGrant();
+  }
+}
+
 function getSessionExpiresAt(sessionData) {
   const expires = sessionData?.cookie?.expires;
 
@@ -249,6 +328,7 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'",
+          "https://www.googletagmanager.com",
           "https://maps.googleapis.com",
           "https://maps.gstatic.com",
           "https://api.mapbox.com",
@@ -267,6 +347,8 @@ app.use(
         ],
         imgSrc: [
           "'self'",
+          "https://*.google-analytics.com",
+          "https://www.googletagmanager.com",
           "data:",
           "blob:",
           "https://maps.googleapis.com",
@@ -281,6 +363,9 @@ app.use(
         ],
         connectSrc: [
           "'self'",
+          "https://*.google-analytics.com",
+          "https://*.analytics.google.com",
+          "https://www.googletagmanager.com",
           "https://maps.googleapis.com",
           "https://maps.gstatic.com",
           "https://pagead2.googlesyndication.com",
@@ -313,6 +398,7 @@ app.use(
   })
 );
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: false, limit: "8kb" }));
 app.use(
   session({
     store: new SqliteSessionStore(),
@@ -328,7 +414,7 @@ app.use(
   })
 );
 
-app.use(express.static(__dirname));
+app.use(publicSiteMiddleware(PUBLIC_DIR));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -458,10 +544,48 @@ function openDatabase() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS vpn_subscriptions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      plan TEXT NOT NULL DEFAULT 'free',
+      status TEXT NOT NULL DEFAULT 'active',
+      device_limit INTEGER NOT NULL DEFAULT 3,
+      starts_at TEXT NOT NULL,
+      ends_at TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS vpn_devices (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      platform TEXT NOT NULL DEFAULT 'other',
+      status TEXT NOT NULL DEFAULT 'active',
+      created_at TEXT NOT NULL,
+      last_seen_at TEXT NOT NULL DEFAULT '',
+      revoked_at TEXT NOT NULL DEFAULT '',
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TRIGGER IF NOT EXISTS create_vpn_subscription_after_user_insert
+    AFTER INSERT ON users
+    BEGIN
+      INSERT OR IGNORE INTO vpn_subscriptions (
+        id, user_id, plan, status, device_limit, starts_at, ends_at, created_at, updated_at
+      ) VALUES (
+        lower(hex(randomblob(16))), NEW.id, 'free', 'active', 3,
+        strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), '',
+        strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      );
+    END;
+
     CREATE INDEX IF NOT EXISTS idx_trips_user_id ON trips(user_id);
     CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_tickets_user_created ON tickets(user_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_vpn_devices_user_status ON vpn_devices(user_id, status);
   `);
   ensureColumn(db, "users", "vip_plan", "TEXT NOT NULL DEFAULT ''");
   ensureColumn(db, "users", "vip_until", "TEXT NOT NULL DEFAULT ''");
@@ -470,7 +594,49 @@ function openDatabase() {
   ensureColumn(db, "trips", "published", "INTEGER NOT NULL DEFAULT 0");
   ensureColumn(db, "trips", "published_at", "TEXT NOT NULL DEFAULT ''");
 
+  const now = new Date().toISOString();
+  const usersWithoutVpn = db.prepare(`
+    SELECT users.id
+    FROM users
+    LEFT JOIN vpn_subscriptions ON vpn_subscriptions.user_id = users.id
+    WHERE vpn_subscriptions.user_id IS NULL
+  `).all();
+  const addVpnSubscription = db.prepare(`
+    INSERT INTO vpn_subscriptions (
+      id, user_id, plan, status, device_limit, starts_at, ends_at, created_at, updated_at
+    ) VALUES (?, ?, 'free', 'active', 3, ?, '', ?, ?)
+  `);
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    usersWithoutVpn.forEach((user) => addVpnSubscription.run(randomUUID(), user.id, now, now, now));
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+
   return db;
+}
+
+function openOidcDatabase() {
+  if (oidcDb) return oidcDb;
+  if (!OIDC_STORAGE_DIR || !path.isAbsolute(OIDC_STORAGE_DIR)) {
+    throw new Error("OIDC_STORAGE_DIR must be an absolute directory outside synchronized project folders.");
+  }
+  fsSync.mkdirSync(OIDC_STORAGE_DIR, { recursive: true });
+  oidcDb = createDatabase(path.join(OIDC_STORAGE_DIR, "oidc-provider.db"));
+  oidcDb.exec(`
+    PRAGMA journal_mode = WAL;
+    CREATE TABLE IF NOT EXISTS oidc_adapter (
+      model TEXT NOT NULL,
+      id TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      expires_at INTEGER,
+      PRIMARY KEY (model, id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_oidc_adapter_expires_at ON oidc_adapter(expires_at);
+  `);
+  return oidcDb;
 }
 
 function createDatabase(filePath) {
@@ -704,6 +870,8 @@ async function saveUsers(users) {
   const database = openDatabase();
   const existingPayments = database.prepare("SELECT * FROM payments").all();
   const existingRatings = database.prepare("SELECT * FROM route_ratings").all();
+  const existingVpnSubscriptions = database.prepare("SELECT * FROM vpn_subscriptions").all();
+  const existingVpnDevices = database.prepare("SELECT * FROM vpn_devices").all();
   const userIds = new Set(users.map((user) => user.id));
   database.exec("BEGIN");
 
@@ -711,6 +879,61 @@ async function saveUsers(users) {
     database.prepare("DELETE FROM trips").run();
     database.prepare("DELETE FROM users").run();
     users.map(normalizeUser).forEach((user) => insertUserRecord(database, user));
+    database.prepare("DELETE FROM vpn_subscriptions").run();
+
+    const insertVpnSubscription = database.prepare(`
+      INSERT INTO vpn_subscriptions (
+        id, user_id, plan, status, device_limit, starts_at, ends_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    existingVpnSubscriptions
+      .filter((subscription) => userIds.has(subscription.user_id))
+      .forEach((subscription) => {
+        insertVpnSubscription.run(
+          subscription.id,
+          subscription.user_id,
+          subscription.plan,
+          subscription.status,
+          subscription.device_limit,
+          subscription.starts_at,
+          subscription.ends_at,
+          subscription.created_at,
+          subscription.updated_at
+        );
+      });
+
+    const usersWithRestoredVpn = new Set(
+      existingVpnSubscriptions
+        .filter((subscription) => userIds.has(subscription.user_id))
+        .map((subscription) => subscription.user_id)
+    );
+    const now = new Date().toISOString();
+    users
+      .filter((user) => !usersWithRestoredVpn.has(user.id))
+      .forEach((user) => {
+        insertVpnSubscription.run(randomUUID(), user.id, "free", "active", 3, now, "", now, now);
+      });
+
+    const insertVpnDevice = database.prepare(`
+      INSERT INTO vpn_devices (
+        id, user_id, name, platform, status, created_at, last_seen_at, revoked_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    existingVpnDevices
+      .filter((device) => userIds.has(device.user_id))
+      .forEach((device) => {
+        insertVpnDevice.run(
+          device.id,
+          device.user_id,
+          device.name,
+          device.platform,
+          device.status,
+          device.created_at,
+          device.last_seen_at,
+          device.revoked_at
+        );
+      });
+
     const insertPayment = database.prepare(
       `INSERT INTO payments (
         id,
@@ -2568,6 +2791,124 @@ app.get("/api/me", async (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
+function ensureVpnSubscription(userId) {
+  const database = openDatabase();
+  let subscription = database.prepare("SELECT * FROM vpn_subscriptions WHERE user_id = ?").get(userId);
+
+  if (!subscription) {
+    const now = new Date().toISOString();
+    const id = randomUUID();
+    database.prepare(`
+      INSERT INTO vpn_subscriptions (
+        id, user_id, plan, status, device_limit, starts_at, ends_at, created_at, updated_at
+      ) VALUES (?, ?, 'free', 'active', 3, ?, '', ?, ?)
+    `).run(id, userId, now, now, now);
+    subscription = database.prepare("SELECT * FROM vpn_subscriptions WHERE id = ?").get(id);
+  }
+
+  return subscription;
+}
+
+function publicVpnSubscription(row) {
+  return {
+    id: row.id,
+    plan: row.plan,
+    status: row.status,
+    deviceLimit: Number(row.device_limit),
+    startsAt: row.starts_at,
+    endsAt: row.ends_at
+  };
+}
+
+function publicVpnDevice(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    platform: row.platform,
+    status: row.status,
+    createdAt: row.created_at,
+    lastSeenAt: row.last_seen_at
+  };
+}
+
+app.get("/api/vpn/account", requireAuth, (req, res) => {
+  const database = openDatabase();
+  const subscription = ensureVpnSubscription(req.currentUser.id);
+  const devices = database.prepare(`
+    SELECT * FROM vpn_devices
+    WHERE user_id = ? AND status = 'active'
+    ORDER BY datetime(created_at) DESC
+  `).all(req.currentUser.id).map(publicVpnDevice);
+
+  res.json({ subscription: publicVpnSubscription(subscription), devices });
+});
+
+app.post("/api/vpn/devices", requireAuth, writeLimiter, (req, res) => {
+  const database = openDatabase();
+  const subscription = ensureVpnSubscription(req.currentUser.id);
+  const name = String(req.body.name || "").trim().slice(0, 60);
+  const allowedPlatforms = new Set(["android", "windows", "ios", "macos", "linux", "other"]);
+  const requestedPlatform = String(req.body.platform || "other").trim().toLowerCase();
+  const platform = allowedPlatforms.has(requestedPlatform) ? requestedPlatform : "other";
+
+  if (name.length < 2) {
+    return res.status(400).json({ error: "Укажи название устройства." });
+  }
+
+  const activeCount = Number(database.prepare(`
+    SELECT COUNT(*) AS count FROM vpn_devices WHERE user_id = ? AND status = 'active'
+  `).get(req.currentUser.id).count);
+
+  if (activeCount >= Number(subscription.device_limit)) {
+    return res.status(409).json({ error: "Достигнут лимит устройств для этого тарифа." });
+  }
+
+  const now = new Date().toISOString();
+  const id = randomUUID();
+  database.prepare(`
+    INSERT INTO vpn_devices (id, user_id, name, platform, status, created_at)
+    VALUES (?, ?, ?, ?, 'active', ?)
+  `).run(id, req.currentUser.id, name, platform, now);
+
+  const saved = database.prepare("SELECT * FROM vpn_devices WHERE id = ?").get(id);
+  res.status(201).json({ device: publicVpnDevice(saved) });
+});
+
+app.patch("/api/vpn/devices/:deviceId", requireAuth, writeLimiter, (req, res) => {
+  const database = openDatabase();
+  const name = String(req.body.name || "").trim().slice(0, 60);
+
+  if (name.length < 2) {
+    return res.status(400).json({ error: "Укажи название устройства." });
+  }
+
+  const result = database.prepare(`
+    UPDATE vpn_devices SET name = ?
+    WHERE id = ? AND user_id = ? AND status = 'active'
+  `).run(name, req.params.deviceId, req.currentUser.id);
+
+  if (!result.changes) {
+    return res.status(404).json({ error: "Устройство не найдено." });
+  }
+
+  const device = database.prepare("SELECT * FROM vpn_devices WHERE id = ?").get(req.params.deviceId);
+  res.json({ device: publicVpnDevice(device) });
+});
+
+app.delete("/api/vpn/devices/:deviceId", requireAuth, writeLimiter, (req, res) => {
+  const now = new Date().toISOString();
+  const result = openDatabase().prepare(`
+    UPDATE vpn_devices SET status = 'revoked', revoked_at = ?
+    WHERE id = ? AND user_id = ? AND status = 'active'
+  `).run(now, req.params.deviceId, req.currentUser.id);
+
+  if (!result.changes) {
+    return res.status(404).json({ error: "Устройство не найдено." });
+  }
+
+  res.json({ ok: true });
+});
+
 app.get("/api/tickets", requireAuth, (req, res) => {
   const tickets = openDatabase()
     .prepare(`
@@ -3058,6 +3399,8 @@ app.post("/api/logout", writeLimiter, (req, res) => {
 });
 
 const cleanPageRoutes = {
+  "/me": "me.html",
+  "/about": "about.html",
   "/planner": "planner.html",
   "/routes": "routes.html",
   "/things": "things.html",
@@ -3071,11 +3414,187 @@ const cleanPageRoutes = {
 };
 
 Object.entries(cleanPageRoutes).forEach(([route, file]) => {
-  app.get(route, (req, res) => res.sendFile(path.join(__dirname, file)));
+  app.get(route, (req, res) => res.sendFile(path.join(PUBLIC_DIR, file)));
 });
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+function initializeOidcProvider() {
+  if (!OIDC_JWKS || !OIDC_STORAGE_DIR || !OIDC_CLIENT_ID || !OIDC_CLIENT_SECRET || !OIDC_REDIRECT_URI) return null;
+  if (isProduction && (!OIDC_ISSUER.startsWith("https://") || !APP_BASE_URL.startsWith("https://"))) {
+    throw new Error("OIDC requires HTTPS issuer and APP_BASE_URL in production.");
+  }
+  if (isProduction && SESSION_SECRET === "change-this-secret-before-publishing") {
+    throw new Error("OIDC requires a unique SESSION_SECRET in production.");
+  }
+
+  let jwks;
+  try {
+    jwks = JSON.parse(OIDC_JWKS);
+  } catch {
+    throw new Error("OIDC_JWKS must contain valid JSON Web Key Set JSON.");
+  }
+  if (!Array.isArray(jwks?.keys) || !jwks.keys.some((key) => key.d && key.kid)) {
+    throw new Error("OIDC_JWKS must contain a persistent private signing key with kid.");
+  }
+  if (!path.isAbsolute(OIDC_STORAGE_DIR)) throw new Error("OIDC_STORAGE_DIR must be an absolute, non-synchronized path.");
+  openOidcDatabase();
+
+  return new OidcProvider(OIDC_ISSUER, {
+    adapter: SqliteOidcAdapter,
+    jwks,
+    clients: [{
+      client_id: OIDC_CLIENT_ID,
+      client_secret: OIDC_CLIENT_SECRET,
+      redirect_uris: [OIDC_REDIRECT_URI],
+      response_types: ["code"],
+      grant_types: ["authorization_code"],
+      token_endpoint_auth_method: "client_secret_basic"
+    }, {
+      client_id: OIDC_DESKTOP_CLIENT_ID,
+      application_type: "native",
+      redirect_uris: [OIDC_DESKTOP_REDIRECT_URI],
+      response_types: ["code"],
+      grant_types: ["authorization_code"],
+      token_endpoint_auth_method: "none"
+    }],
+    cookies: { keys: [SESSION_SECRET] },
+    claims: {
+      openid: ["sub"],
+      email: ["email", "email_verified"],
+      profile: ["name"]
+    },
+    scopes: ["openid", "email", "profile"],
+    findAccount: async (_ctx, accountId) => {
+      const user = (await readUsers()).map(normalizeUser).find((item) => item.id === accountId && item.emailVerified);
+      if (!user) return undefined;
+      return {
+        accountId: user.id,
+        claims: async () => ({
+          sub: user.id,
+          email: user.email,
+          email_verified: true,
+          name: user.name
+        })
+      };
+    },
+    interactions: {
+      url: (_ctx, interaction) => `/oidc/interaction/${interaction.uid}`
+    },
+    features: {
+      devInteractions: { enabled: false },
+      registration: { enabled: false },
+      registrationManagement: { enabled: false }
+    }
+  });
+}
+
+function renderOidcInteraction({ title, description, uid, csrf, form, error = "" }) {
+  const errorMarkup = error ? `<p role="alert" style="color:#b42318">${error}</p>` : "";
+  return `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><main style="font:16px system-ui;max-width:420px;margin:10vh auto;padding:24px"><h1>${title}</h1><p>${description}</p>${errorMarkup}<form method="post" action="/oidc/interaction/${encodeURIComponent(uid)}/${form}"><input type="hidden" name="csrf" value="${csrf}">${form === "login" ? '<label>Email<br><input name="email" type="email" autocomplete="username" required style="width:100%;padding:10px;margin:6px 0 14px"></label><label>Password<br><input name="password" type="password" autocomplete="current-password" required style="width:100%;padding:10px;margin:6px 0 14px"></label><button type="submit" style="padding:10px 18px">Войти и продолжить</button>' : '<button name="approve" value="yes" type="submit" style="padding:10px 18px">Разрешить</button> <button name="approve" value="no" type="submit" style="padding:10px 18px">Отказать</button>'}</form></main></html>`;
+}
+
+function constantTimeEqual(left, right) {
+  const a = Buffer.from(String(left || ""));
+  const b = Buffer.from(String(right || ""));
+  return a.length === b.length && a.length > 0 && timingSafeEqual(a, b);
+}
+
+oidcProvider = initializeOidcProvider();
+
+app.get("/oidc/interaction/:uid", authLimiter, async (req, res, next) => {
+  if (!oidcProvider) return res.status(503).send("Servera sign-in is not configured.");
+  try {
+    const details = await oidcProvider.interactionDetails(req, res);
+    if (details.prompt.name === "login" && req.session.userId) {
+      const user = (await readUsers()).map(normalizeUser).find((item) => item.id === req.session.userId && item.emailVerified);
+      if (user) {
+        await oidcProvider.interactionFinished(req, res, {
+          login: { accountId: user.id, acr: "urn:pwd", remember: true, ts: Math.floor(Date.now() / 1000) }
+        });
+        return;
+      }
+    }
+    const csrf = randomUUID();
+    req.session.oidcInteractionCsrf = csrf;
+    if (details.prompt.name === "login") {
+      return res.type("html").send(renderOidcInteraction({
+        title: "Вход в PlanMyNord",
+        description: "Войди в подтверждённый аккаунт Servera, чтобы продолжить в Commonplace Finance.",
+        uid: req.params.uid,
+        csrf,
+        form: "login"
+      }));
+    }
+    if (details.prompt.name === "consent") {
+      return res.type("html").send(renderOidcInteraction({
+        title: "Доступ к профилю",
+        description: "Commonplace Finance запрашивает подтверждённый email и имя вашего аккаунта.",
+        uid: req.params.uid,
+        csrf,
+        form: "consent"
+      }));
+    }
+    return res.status(400).send("Unsupported sign-in step.");
+  } catch (error) { next(error); }
+});
+
+app.post("/oidc/interaction/:uid/login", authLimiter, async (req, res, next) => {
+  if (!oidcProvider) return res.status(503).send("Servera sign-in is not configured.");
+  try {
+    if (!constantTimeEqual(req.body.csrf, req.session.oidcInteractionCsrf)) return res.status(403).send("Invalid sign-in form. Restart the sign-in flow.");
+    const email = normalizeEmail(req.body.email);
+    const password = String(req.body.password || "");
+    const user = (await readUsers()).map(normalizeUser).find((item) => sameEmail(item.email, email));
+    let passwordMatches = false;
+    if (user) {
+      try { passwordMatches = await bcrypt.compare(password, user.passwordHash); } catch { passwordMatches = false; }
+    }
+    if (!user || !passwordMatches || !user.emailVerified) {
+      return res.status(401).type("html").send(renderOidcInteraction({
+        title: "Вход не выполнен",
+        description: "Проверь email, пароль и подтверждение адреса, затем попробуй снова.",
+        uid: req.params.uid,
+        csrf: req.session.oidcInteractionCsrf,
+        form: "login",
+        error: "Не удалось проверить аккаунт."
+      }));
+    }
+    req.session.regenerate((error) => {
+      if (error) return next(error);
+      req.session.userId = user.id;
+      req.session.save(async (saveError) => {
+        if (saveError) return next(saveError);
+        try {
+          await oidcProvider.interactionFinished(req, res, {
+            login: { accountId: user.id, acr: "urn:pwd", remember: true, ts: Math.floor(Date.now() / 1000) }
+          });
+        } catch (finishError) { next(finishError); }
+      });
+    });
+  } catch (error) { next(error); }
+});
+
+app.post("/oidc/interaction/:uid/consent", authLimiter, async (req, res, next) => {
+  if (!oidcProvider) return res.status(503).send("Servera sign-in is not configured.");
+  try {
+    if (!constantTimeEqual(req.body.csrf, req.session.oidcInteractionCsrf)) return res.status(403).send("Invalid consent form. Restart the sign-in flow.");
+    const details = await oidcProvider.interactionDetails(req, res);
+    if (req.body.approve !== "yes") {
+      await oidcProvider.interactionFinished(req, res, { error: "access_denied", error_description: "The user denied profile access." });
+      return;
+    }
+    const grant = new oidcProvider.Grant({ accountId: details.session.accountId, clientId: details.params.client_id });
+    const scopes = details.prompt.details.missingOIDCScope;
+    if (Array.isArray(scopes) && scopes.length) grant.addOIDCScope(scopes.join(" "));
+    const claims = details.prompt.details.missingOIDCClaims;
+    if (Array.isArray(claims) && claims.length) grant.addOIDCClaims(claims);
+    await oidcProvider.interactionFinished(req, res, { consent: { grantId: await grant.save() } });
+  } catch (error) { next(error); }
+});
+
+if (oidcProvider) app.use("/oidc", oidcProvider.callback());
+
+app.use((req, res) => {
+  res.status(404).type("text").send("Not found");
 });
 
 app.listen(PORT, () => {

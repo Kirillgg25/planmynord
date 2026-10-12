@@ -10,7 +10,7 @@ import {
   updateAuthNav
 } from "./auth.js?v=reliability-1";
 import { formatBudgetText, initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { applyTranslations, getLanguage, initLanguageSelector, t } from "./i18n.js?v=reliability-1";
+import { applyTranslations, getLanguage, initLanguageSelector, t } from "./i18n.js?v=author-1";
 import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
 
 const adminMessage = document.getElementById("adminMessage");

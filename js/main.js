@@ -1,7 +1,7 @@
 import { initMap, drawRoute, redrawRouteFromCurrentLocation, findCitiesAlongCurrentRoute, findStoresForCity, findStoresAlongRoute, findHotelsForCity, focusStoreOnMap, clearActiveMapFocus, setMapStyle, findPlaceInCity, updateUserLocationOnMap, getRouteNavigationSnapshot, findTrafficSignalsAlongCurrentRoute, resizePlannerMap } from "./map.js?v=traffic-signals-3";
 import { getPublicRoutes, saveTrip, updateAuthNav } from "./auth.js?v=reliability-1";
 import { formatCurrencyFromNok, initCurrencySelector } from "./currency.js?v=planner-errors-1";
-import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=reliability-1";
+import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=author-1";
 import { GOOGLE_MAPS_STATIC_API_KEY, getPlaceCenter } from "./mapbox-config.js";
 import { createTripPlan } from "./planner.js?v=reliability-1";
 import { extraReadyRoutes } from "./ready-routes-data.js";

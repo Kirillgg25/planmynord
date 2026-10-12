@@ -6,7 +6,7 @@ import {
 } from "./currency.js";
 import { getPlaceLabel, placeGroups } from "./data.js";
 import { distributeRouteDays } from "./itinerary.js";
-import { getLanguage, t } from "./i18n.js?v=reliability-1";
+import { getLanguage, t } from "./i18n.js?v=author-1";
 
 let activePlaceTarget = null;
 let activeFylkeId = null;

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /profile.html
+Disallow: /account.html
+Disallow: /payment-success.html
+Disallow: /payment-cancel.html
+Disallow: /mapbox-lab.html
+
+Sitemap: https://planmynord.com/sitemap.xml

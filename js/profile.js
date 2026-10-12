@@ -1,4 +1,5 @@
-﻿import {
+import {
+  addVpnDevice,
   createCardVipPayment,
   createVippsVipPayment,
   deleteAvatar,
@@ -8,14 +9,17 @@
   getSavedTrips,
   getSavedTickets,
   getVipProduct,
+  getVpnAccount,
   logoutUser,
+  removeVpnDevice,
+  renameVpnDevice,
   saveAvatar,
   saveTicket,
   updateTripPublication,
   updateAuthNav
 } from "./auth.js?v=ticket-wallet-1";
 import { formatBudgetText, initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { applyTranslations, initLanguageSelector, t } from "./i18n.js?v=reliability-1";
+import { applyTranslations, initLanguageSelector, t } from "./i18n.js?v=author-1";
 import { routeToPlannerDraft, storePlannerDraft } from "./planner-transfer.js";
 import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
 
@@ -44,6 +48,13 @@ const ticketTravelDate = document.getElementById("ticketTravelDate");
 const ticketUploadStatus = document.getElementById("ticketUploadStatus");
 const savedTickets = document.getElementById("savedTickets");
 const ticketFileLabel = ticketUploadForm.querySelector(".ticket-file-picker span");
+const vpnDeviceForm = document.getElementById("vpnDeviceForm");
+const vpnDeviceName = document.getElementById("vpnDeviceName");
+const vpnDevicePlatform = document.getElementById("vpnDevicePlatform");
+const vpnDeviceMessage = document.getElementById("vpnDeviceMessage");
+const vpnDeviceList = document.getElementById("vpnDeviceList");
+const vpnSubscriptionStatus = document.getElementById("vpnSubscriptionStatus");
+const vpnDeviceLimit = document.getElementById("vpnDeviceLimit");
 let currentTrips = [];
 let currentTickets = [];
 let currentVipProduct = null;
@@ -56,6 +67,55 @@ function showMessage(message, type = "success") {
 function clearMessage() {
   profileMessage.textContent = "";
   profileMessage.className = "auth-message";
+}
+
+function vpnPlatformLabel(platform) {
+  return {
+    android: "Android",
+    windows: "Windows",
+    ios: "iPhone / iPad",
+    macos: "macOS",
+    linux: "Linux",
+    other: "Другое"
+  }[platform] || "Другое";
+}
+
+function renderVpnAccount(subscription, devices) {
+  const active = subscription?.status === "active";
+  vpnSubscriptionStatus.textContent = active
+    ? "Подписка активна. Конфигурация появится после подключения VPN-сервера."
+    : "Подписка неактивна.";
+  vpnDeviceLimit.textContent = `${subscription?.plan === "free" ? "Бесплатно" : subscription?.plan || "VPN"} · ${devices.length}/${subscription?.deviceLimit || 0}`;
+
+  if (!devices.length) {
+    vpnDeviceList.innerHTML = "<p>Устройств пока нет. Добавь телефон или компьютер.</p>";
+    return;
+  }
+
+  vpnDeviceList.innerHTML = devices.map((device) => `
+    <article class="vpn-device-card">
+      <div>
+        <strong>${escapeHtml(device.name)}</strong>
+        <p>${vpnPlatformLabel(device.platform)} · добавлено ${new Date(device.createdAt).toLocaleDateString()}</p>
+      </div>
+      <div class="vpn-device-actions">
+        <button type="button" class="secondary-button rename-vpn-device" data-device-id="${device.id}" data-device-name="${escapeHtml(device.name)}">Переименовать</button>
+        <button type="button" class="avatar-remove-button remove-vpn-device" data-device-id="${device.id}">Отключить</button>
+      </div>
+    </article>
+  `).join("");
+}
+
+async function loadVpnAccount() {
+  const result = await getVpnAccount();
+  if (result.error) {
+    vpnDeviceMessage.textContent = result.error;
+    vpnDeviceMessage.className = "auth-message error";
+    return;
+  }
+  vpnDeviceMessage.textContent = "";
+  vpnDeviceMessage.className = "auth-message";
+  renderVpnAccount(result.subscription, result.devices || []);
 }
 
 function renderTrips(trips) {
@@ -329,6 +389,7 @@ async function renderProfile() {
   renderAvatar(user);
   renderTrips(trips);
   await loadTickets();
+  await loadVpnAccount();
 }
 
 async function fileToAvatarDataUrl(file) {
@@ -482,6 +543,49 @@ savedTrips.addEventListener("click", async (event) => {
 });
 
 ticketUploadForm.addEventListener("submit", uploadSelectedTickets);
+vpnDeviceForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const result = await addVpnDevice({
+    name: vpnDeviceName.value.trim(),
+    platform: vpnDevicePlatform.value
+  });
+  if (result.error) {
+    vpnDeviceMessage.textContent = result.error;
+    vpnDeviceMessage.className = "auth-message error";
+    return;
+  }
+  vpnDeviceName.value = "";
+  vpnDeviceMessage.textContent = "Устройство добавлено.";
+  vpnDeviceMessage.className = "auth-message success";
+  await loadVpnAccount();
+});
+
+vpnDeviceList.addEventListener("click", async (event) => {
+  const renameButton = event.target.closest(".rename-vpn-device");
+  const removeButton = event.target.closest(".remove-vpn-device");
+
+  if (renameButton) {
+    const name = window.prompt("Новое название устройства", renameButton.dataset.deviceName || "");
+    if (!name) return;
+    const result = await renameVpnDevice(renameButton.dataset.deviceId, name.trim());
+    if (result.error) {
+      vpnDeviceMessage.textContent = result.error;
+      vpnDeviceMessage.className = "auth-message error";
+      return;
+    }
+    await loadVpnAccount();
+  }
+
+  if (removeButton && window.confirm("Отключить это устройство от VPN-аккаунта?")) {
+    const result = await removeVpnDevice(removeButton.dataset.deviceId);
+    if (result.error) {
+      vpnDeviceMessage.textContent = result.error;
+      vpnDeviceMessage.className = "auth-message error";
+      return;
+    }
+    await loadVpnAccount();
+  }
+});
 ticketFiles.addEventListener("change", () => {
   const count = ticketFiles.files?.length || 0;
   ticketFileLabel.textContent = count ? t("tickets.filesSelected", { count }) : t("tickets.chooseFiles");

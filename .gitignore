@@ -1,5 +1,6 @@
 ﻿node_modules/
 data/users.json
+удалить/
 data/app.db
 data/app.db-*
 .env
@@ -21,4 +22,6 @@ data/
 .agents/
 .stignore
 .gitignore.backup
+public/js/mapbox-config.js
+
 js/mapbox-config.js

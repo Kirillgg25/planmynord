@@ -1,6 +1,6 @@
 import { updateAuthNav } from "./auth.js";
 import { initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { applyTranslations, getLanguage, initLanguageSelector } from "./i18n.js?v=reliability-1";
+import { applyTranslations, getLanguage, initLanguageSelector } from "./i18n.js?v=author-1";
 
 const CONTACT_LINK = '<a href="mailto:kyrylojobb@gmail.com">kyrylojobb@gmail.com</a>';
 
@@ -101,7 +101,7 @@ const legalPages = {
       sections: [
         ["Nødvendige informasjonskapsler", "PlanMyNord bruker nødvendige informasjonskapsler for innlogging og sikkerhet. Disse trengs for at kontoen og tjenesten skal fungere."],
         ["Tredjepartstjenester", "Kart og betaling kan laste inn innhold fra Mapbox, Google Maps og Stripe. Disse leverandørene kan behandle tekniske data når du bruker kart eller betaler."],
-        ["Analyse og markedsføring", "PlanMyNord bruker ikke analyse- eller markedsføringscookies i denne versjonen. Hvis dette legges til senere, må brukeren få tydelig informasjon og mulighet til samtykke der det kreves."]
+        ["Analyse og markedsføring", "Google Analytics brukes bare etter at du har tillatt besøksstatistikk. Du kan avslå eller trekke samtykket tilbake via Analyseinnstillinger nederst på siden. Valget lagres i nettleseren. Analyseinformasjonskapsler (_ga) brukes til besøksstatistikk."]
       ]
     },
     en: {
@@ -111,7 +111,7 @@ const legalPages = {
       sections: [
         ["Necessary cookies", "PlanMyNord uses necessary cookies for login and security. They are required for the account and service to work."],
         ["Third-party services", "Maps and payments may load content from Mapbox, Google Maps and Stripe. These providers may process technical data when you use maps or pay."],
-        ["Analytics and marketing", "PlanMyNord does not use analytics or marketing cookies in this version. If added later, users must receive clear information and a consent option where required."]
+        ["Analytics and marketing", "Google Analytics is loaded only after you allow visitor statistics. You can decline or withdraw consent using Analytics settings at the bottom of the page. Your choice is stored in this browser. Analytics cookies (_ga) are used for visitor statistics."]
       ]
     },
     ru: {
@@ -121,7 +121,7 @@ const legalPages = {
       sections: [
         ["Необходимые cookie", "PlanMyNord использует необходимые cookie для входа и безопасности. Они нужны, чтобы аккаунт и сервис работали."],
         ["Сторонние сервисы", "Карты и платежи могут загружать контент от Mapbox, Google Maps и Stripe. Эти поставщики могут обрабатывать технические данные при использовании карт или оплате."],
-        ["Аналитика и маркетинг", "В этой версии PlanMyNord не использует аналитические или маркетинговые cookie. Если они будут добавлены позже, пользователь получит понятную информацию и возможность согласия там, где это требуется."]
+        ["Аналитика и маркетинг", "Google Analytics загружается только после согласия на статистику посещений. Отказаться или отозвать согласие можно через «Настройки аналитики» внизу страницы. Выбор сохраняется в браузере. Аналитические cookie (_ga) используются для статистики посещений."]
       ]
     }
   },
@@ -172,12 +172,14 @@ function renderLegalPage() {
   if (!page) return;
 
   const content = page[getLanguage()] || page.no;
+  const analyticsNotice = {"no":"Google Analytics brukes bare etter at du har tillatt besøksstatistikk. Du kan avslå eller trekke samtykket tilbake via Analyseinnstillinger nederst på siden. Valget lagres i nettleseren. Analyseinformasjonskapsler (_ga) brukes til besøksstatistikk.","en":"Google Analytics is loaded only after you allow visitor statistics. You can decline or withdraw consent using Analytics settings at the bottom of the page. Your choice is stored in this browser. Analytics cookies (_ga) are used for visitor statistics.","ru":"Google Analytics загружается только после согласия на статистику посещений. Отказаться или отозвать согласие можно через «Настройки аналитики» внизу страницы. Выбор сохраняется в браузере. Аналитические cookie (_ga) используются для статистики посещений."};
   document.title = `${content.title} | PlanMyNord`;
   shell.innerHTML = `
     <p class="store-kicker">${content.kicker}</p>
     <h1>${content.title}</h1>
     <p>${content.updated}</p>
     ${content.sections.map(([title, body]) => `<h2>${title}</h2><p>${body}</p>`).join("")}
+    ${pageName === "privacy.html" ? `<h2>Google Analytics</h2><p>${analyticsNotice[getLanguage()] || analyticsNotice.no}</p>` : ""}
   `;
 }
 

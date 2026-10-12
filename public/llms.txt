@@ -1,0 +1,30 @@
+# PlanMyNord
+
+> PlanMyNord is a Norway travel planning website with suggested itineraries, maps, budget estimates, city guides and flight search links.
+
+The website supports Norwegian, English and Russian. Its primary travel region is Norway.
+
+Travel costs, distances and durations are estimates, not guarantees. Check current prices, opening hours, road conditions and ferry schedules with the relevant providers. Flight search links lead to external services; they are not confirmed fares or bookings.
+
+Use the public pages below for summaries and references. Private account, profile, admin and payment pages are not public reference material.
+
+## Travel Planning
+
+- [Home](https://planmynord.com/): Overview of PlanMyNord.
+- [Trip planner](https://planmynord.com/planner.html): Build a suggested itinerary with stops, dates, travellers and a budget.
+- [Ready routes](https://planmynord.com/routes.html): Browse routes and open them in the planner.
+- [City guides and things to do](https://planmynord.com/things.html): Places to visit and practical information.
+- [Flights to Norway](https://planmynord.com/tickets.html): Prepare flight search links for external comparison services.
+- [About the project](https://planmynord.com/about.html): Project information, data sources and limitations.
+- [About the developer](https://planmynord.com/me.html): Kyrylo Hladuntsov, his projects, learning and homelab.
+
+## Policies
+
+- [Terms](https://planmynord.com/terms.html): Terms of use and purchase.
+- [Privacy](https://planmynord.com/privacy.html): Personal data and privacy information.
+- [Cookies](https://planmynord.com/cookies.html): Cookie and analytics information.
+- [Withdrawal and refunds](https://planmynord.com/refund.html): Withdrawal and refund information.
+
+## Optional
+
+- [Sitemap](https://planmynord.com/sitemap.xml): Index of site pages.

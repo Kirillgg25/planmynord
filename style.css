@@ -333,6 +333,50 @@ body[data-title-key="index.title"] .legal-floating {
   }
 }
 
+.vpn-account-block {
+  display: grid;
+  gap: 18px;
+  border: 1px solid #b9d7ff;
+  background: linear-gradient(145deg, #f7fbff 0%, #eef6ff 100%);
+}
+.vpn-plan-badge {
+  align-self: start;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+.vpn-device-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px auto;
+  gap: 12px;
+  align-items: end;
+}
+.vpn-device-form label { display: grid; gap: 6px; }
+.vpn-device-form input,
+.vpn-device-form select { width: 100%; }
+.vpn-device-list { display: grid; gap: 10px; }
+.vpn-device-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid #d6e4f5;
+  border-radius: 14px;
+  background: #fff;
+}
+.vpn-device-card p { margin: 3px 0 0; color: #64748b; }
+.vpn-device-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.vpn-device-actions button { width: auto; margin: 0; }
+@media (max-width: 720px) {
+  .vpn-device-form { grid-template-columns: 1fr; }
+  .vpn-device-card { align-items: flex-start; flex-direction: column; }
+  .vpn-device-actions { width: 100%; }
+  .vpn-device-actions button { flex: 1; }
+}
+
 body[data-title-key="index.title"] #tripPlan:empty::before {
   content: "" !important;
   width: 48px;
@@ -7976,54 +8020,32 @@ body[data-title-key="home.title"] .home-footer {
   }
 }
 
-.site-menu-toggle { display: none; }
-body[data-title-key="routes.title"] .side-ad { display: none !important; }
-@media (max-width: 760px) {
-  body:not([data-title-key="home.title"]) .topbar {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-  }
-  body:not([data-title-key="home.title"]) .topbar .logo { width: auto; flex: 1; min-width: 0; margin-right: auto; font-size: 20px; }
-  body .topbar .site-menu-toggle {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    margin: 0;
-    font-size: 22px;
-    order: 2;
-  }
-  body:not([data-title-key="home.title"]) .topbar .topnav { display: none; }
-  body:not([data-title-key="home.title"]) .topbar.site-menu-open .topnav {
-    display: flex;
-    flex-wrap: wrap;
-    flex-basis: 100%;
-    order: 3;
-  }
-  body .topbar .ai-support-toggle {
-    position: static;
-    width: auto;
-    min-width: 0;
-    height: 36px;
-    padding: 0 10px;
-    margin: 0;
-    font-size: 13px;
-    box-shadow: none;
-    order: 1;
-  }
-  body #aiSupportPanel {
-    position: fixed;
-    top: 76px;
-    bottom: auto;
-    right: 12px;
-    max-height: calc(100dvh - 100px);
-    overflow-y: auto;
-  }
+
+.analytics-consent {
+  position: fixed;
+  inset: auto 20px 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 860px;
+  padding: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #162536;
+  box-shadow: 0 8px 32px #10203024;
+}
+.analytics-consent[hidden] { display: none; }
+.analytics-consent p { margin: 8px 0; line-height: 1.5; }
+.analytics-consent-actions { display: flex; flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
+.analytics-consent-actions button { margin: 0; padding: 10px 16px; border: 1px solid #2563eb; border-radius: 6px; background: #fff; color: #1d4ed8; }
+.analytics-settings { width: auto; margin: 0; padding: 0; border: 0; background: transparent; color: inherit; font-size: 12px; text-decoration: underline; box-shadow: none; }
+@media (max-width: 620px) {
+  .analytics-consent { inset: auto 12px 12px; display: block; max-height: calc(100dvh - 24px); overflow-y: auto; }
+  .analytics-consent-actions { margin-top: 14px; }
+  .analytics-consent-actions button { flex: 1; }
 }
 
 /* Planner details panel: reserve 25% of the workspace instead of covering the map. */

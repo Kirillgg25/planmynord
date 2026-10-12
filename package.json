@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "backup:r2": "node scripts/backup-r2.js"
+    "oidc:keygen": "node scripts/generate-oidc-keys.cjs",
+    "backup:r2": "node scripts/backup-r2.js",
+    "test:static-security": "node scripts/check-static-security.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1129.0",
@@ -18,7 +20,11 @@
     "express-rate-limit": "^7.4.0",
     "express-session": "^1.18.0",
     "helmet": "^8.0.0",
-    "nodemailer": "^6.9.15",
+    "nodemailer": "^10.0.16",
+    "oidc-provider": "^9.12.2",
     "pg": "^8.23.0"
+  },
+  "overrides": {
+    "qs": "^6.16.0"
   }
 }

@@ -1631,6 +1631,135 @@ const translations = {
   }
 };
 
+Object.assign(translations.no, {
+  "me.nav": "Om meg",
+  "me.title": "Kyrylo Hladuntsov | Om meg | PlanMyNord",
+  "me.role": "IT-elev · Utvikler · Homelab-entusiast",
+  "me.motto": "Jeg lærer IT ved å bygge ting som virker.",
+  "me.intro": "Jeg heter Kyrylo, er 18 år og bor i Norge. Jeg går VG2 Informasjonsteknologi på Glemmen videregående skole. Jeg liker å finne ut hvordan teknologi fungerer, og prøve det ut i egne prosjekter.",
+  "me.projects": "Mine prosjekter",
+  "me.what": "Det jeg jobber med",
+  "me.webTitle": "Web og backend",
+  "me.webText": "Jeg bygger PlanMyNord med HTML, CSS og JavaScript, og jobber med Node.js og API-er på serversiden. Prosjektet gir meg konkrete problemer å lære av.",
+  "me.infraTitle": "Servere og drift",
+  "me.infraText": "Jeg setter opp og vedlikeholder min egen Linux-server, publiserer webtjenester og bruker Docker og Cloudflare i arbeidet med infrastrukturen.",
+  "me.networkTitle": "Nettverk og feilsøking",
+  "me.networkText": "Jeg jobber med hjemmenettverket mitt: MikroTik, ruting, DNS, NAT, VLAN og firewall. Når noe ikke virker, liker jeg å finne årsaken og teste en løsning.",
+  "me.lab": "Min homelab",
+  "me.labLead": "Et lite driftsmiljø. Mange muligheter til å lære.",
+  "me.labText": "Hjemmeserveren min kjører Linux og huser PlanMyNord. Her eksperimenterer jeg med tjenester, nettverk og utrulling, og lærer hva det faktisk innebærer å holde noe i gang.",
+  "me.labServer": "Egen Linux-server",
+  "me.labServerText": "Hosting av PlanMyNord, vedlikehold og testing av egne tjenester.",
+  "me.labNetwork": "MikroTik / RouterOS",
+  "me.labNetworkText": "Ruting, DNS, NAT, VLAN og firewall i hjemmenettverket.",
+  "me.labAccess": "VPN / WireGuard",
+  "me.labAccessText": "Oppsett av fjernaksess og tilkobling til min egen infrastruktur.",
+  "me.skills": "Teknologi jeg bruker og utforsker",
+  "me.skillsIntro": "Verktøy jeg møter i prosjektene mine, på skolen og i homelaben. Jeg lærer fortsatt, og bygger videre på det jeg kan.",
+  "me.development": "Utvikling",
+  "me.operations": "Infrastruktur",
+  "me.networks": "Nettverk og support",
+  "me.mainProject": "Hovedprosjekt · Under utvikling",
+  "me.projectText": "Jeg utvikler PlanMyNord selv: et nettsted for å planlegge reiser i Norge med ruter, kart og budsjett. Det er både et praktisk prosjekt og et sted å eksperimentere med nye tjenester.",
+  "me.visit": "Åpne PlanMyNord",
+  "me.source": "Se kildekoden",
+  "me.wip": "Under utvikling",
+  "me.networkProject": "Verktøy for nettverksoversikt",
+  "me.networkProjectText": "Jeg jobber også med et program for å få oversikt over nettverket. Jeg legger til mer informasjon og en lenke når prosjektet er klart til å vises frem.",
+  "me.learning": "Dette lærer jeg nå",
+  "me.learningText": "Jeg vil utvikle meg videre som IT-utvikler, særlig innen backend. Derfor jobber jeg videre med API-er, Linux, nettverk og DevOps, ett praktisk prosjekt om gangen.",
+  "me.closing": "Bygge. Prøve. Feilsøke. Forbedre.",
+  "me.closingText": "For meg er det å lage noe selv den beste måten å lære på. Ikke alt fungerer på første forsøk, og det er ofte da jeg lærer mest.",
+  "me.github": "Se prosjektene mine på GitHub",
+  "me.description": "Bli kjent med Kyrylo Hladuntsov, IT-elev i Norge og utvikleren bak PlanMyNord. Egne prosjekter, Linux, nettverk og homelab."
+});
+
+Object.assign(translations.en, {
+  "me.nav": "About me",
+  "me.title": "Kyrylo Hladuntsov | About Me | PlanMyNord",
+  "me.role": "IT Student · Developer · Homelab Enthusiast",
+  "me.motto": "I learn IT by building real things.",
+  "me.intro": "I'm Kyrylo, 18, and I live in Norway. I'm studying VG2 Information Technology at Glemmen videregående skole. I enjoy figuring out how technology works and trying it out in projects of my own.",
+  "me.projects": "My projects",
+  "me.what": "What I do",
+  "me.webTitle": "Web & backend",
+  "me.webText": "I build PlanMyNord with HTML, CSS and JavaScript, and work with Node.js and APIs on the server side. The project gives me real problems to learn from.",
+  "me.infraTitle": "Servers & self-hosting",
+  "me.infraText": "I set up and maintain my own Linux server, deploy web services and use Docker and Cloudflare as part of my infrastructure work.",
+  "me.networkTitle": "Networking & troubleshooting",
+  "me.networkText": "I work on my home network: MikroTik, routing, DNS, NAT, VLANs and firewall rules. When something breaks, I like finding the cause and testing a solution.",
+  "me.lab": "My homelab",
+  "me.labLead": "A small setup. Plenty to learn.",
+  "me.labText": "My home server runs Linux and hosts PlanMyNord. It's where I experiment with services, networking and deployments, and learn what it takes to keep things running.",
+  "me.labServer": "My own Linux server",
+  "me.labServerText": "Hosting PlanMyNord, maintaining the server and testing my own services.",
+  "me.labNetwork": "MikroTik / RouterOS",
+  "me.labNetworkText": "Routing, DNS, NAT, VLANs and firewall configuration for my home network.",
+  "me.labAccess": "VPN / WireGuard",
+  "me.labAccessText": "Setting up remote access and connections to my own infrastructure.",
+  "me.skills": "Technology I use and explore",
+  "me.skillsIntro": "Tools I work with in my projects, at school and in my homelab. I'm still learning and building on what I know.",
+  "me.development": "Development",
+  "me.operations": "Infrastructure",
+  "me.networks": "Networking & support",
+  "me.mainProject": "Main project · In development",
+  "me.projectText": "I develop PlanMyNord myself: a website for planning trips in Norway with routes, maps and budgets. It's both a practical project and a place to experiment with new services.",
+  "me.visit": "Open PlanMyNord",
+  "me.source": "View source code",
+  "me.wip": "In development",
+  "me.networkProject": "Network overview tool",
+  "me.networkProjectText": "I'm also working on a program for exploring my network. I'll add more details and a link when it's ready to share.",
+  "me.learning": "Currently learning",
+  "me.learningText": "I want to grow as an IT developer, especially in backend development. I'm continuing to learn about APIs, Linux, networking and DevOps, one practical project at a time.",
+  "me.closing": "Build. Try. Troubleshoot. Improve.",
+  "me.closingText": "For me, making something myself is the best way to learn. Not everything works on the first try, and that's often when I learn the most.",
+  "me.github": "Explore my projects on GitHub",
+  "me.description": "Meet Kyrylo Hladuntsov, an IT student in Norway and the developer behind PlanMyNord. Personal projects, Linux, networking and homelab."
+});
+
+Object.assign(translations.ru, {
+  "me.nav": "Обо мне",
+  "me.title": "Kyrylo Hladuntsov | Обо мне | PlanMyNord",
+  "me.role": "IT-студент · Разработчик · Homelab-энтузиаст",
+  "me.motto": "Я изучаю IT, создавая реальные проекты.",
+  "me.intro": "Меня зовут Kyrylo, мне 18 лет, я живу в Норвегии. Сейчас учусь на VG2 Informasjonsteknologi в Glemmen videregående skole. Мне нравится разбираться, как работают технологии, и пробовать их в собственных проектах.",
+  "me.projects": "Мои проекты",
+  "me.what": "Чем я занимаюсь",
+  "me.webTitle": "Веб и backend",
+  "me.webText": "Разрабатываю PlanMyNord на HTML, CSS и JavaScript, работаю с Node.js и API на серверной стороне. Проект даёт мне реальные задачи, на которых можно учиться.",
+  "me.infraTitle": "Серверы и свои сервисы",
+  "me.infraText": "Настраиваю и обслуживаю собственный Linux-сервер, разворачиваю веб-сервисы и использую Docker и Cloudflare в работе с инфраструктурой.",
+  "me.networkTitle": "Сети и диагностика",
+  "me.networkText": "Занимаюсь домашней сетью: MikroTik, маршрутизация, DNS, NAT, VLAN и firewall. Когда что-то не работает, мне интересно найти причину и проверить решение.",
+  "me.lab": "Мой homelab",
+  "me.labLead": "Небольшая инфраструктура. Много возможностей учиться.",
+  "me.labText": "На моём домашнем Linux-сервере работает PlanMyNord. Здесь я экспериментирую с сервисами, сетями и развёртыванием и узнаю на практике, что нужно для их работы.",
+  "me.labServer": "Собственный Linux-сервер",
+  "me.labServerText": "Размещение PlanMyNord, обслуживание сервера и тестирование своих сервисов.",
+  "me.labNetwork": "MikroTik / RouterOS",
+  "me.labNetworkText": "Маршрутизация, DNS, NAT, VLAN и firewall в домашней сети.",
+  "me.labAccess": "VPN / WireGuard",
+  "me.labAccessText": "Настройка удалённого доступа и подключения к собственной инфраструктуре.",
+  "me.skills": "Технологии, которые использую и изучаю",
+  "me.skillsIntro": "Инструменты из моих проектов, учёбы и homelab. Я продолжаю учиться и постепенно углубляю свои знания.",
+  "me.development": "Разработка",
+  "me.operations": "Инфраструктура",
+  "me.networks": "Сети и поддержка",
+  "me.mainProject": "Основной проект · В разработке",
+  "me.projectText": "Я самостоятельно разрабатываю PlanMyNord: сайт для планирования поездок по Норвегии с маршрутами, картами и бюджетом. Это и полезный проект, и площадка для экспериментов с новыми сервисами.",
+  "me.visit": "Открыть PlanMyNord",
+  "me.source": "Исходный код",
+  "me.wip": "В разработке",
+  "me.networkProject": "Программа для просмотра сети",
+  "me.networkProjectText": "Также работаю над программой для просмотра своей сети. Добавлю подробности и ссылку, когда проект будет готов к показу.",
+  "me.learning": "Что изучаю сейчас",
+  "me.learningText": "Хочу развиваться как IT-разработчик, особенно в backend. Продолжаю изучать API, Linux, сети и DevOps через практику и собственные проекты.",
+  "me.closing": "Создавать. Пробовать. Исправлять. Улучшать.",
+  "me.closingText": "Для меня лучший способ изучать IT — сделать что-то самому. Не всё получается с первого раза, и часто именно тогда я узнаю больше всего.",
+  "me.github": "Мои проекты на GitHub",
+  "me.description": "Kyrylo Hladuntsov — IT-студент в Норвегии и разработчик PlanMyNord. Личные проекты, Linux-сервер, сети и домашняя инфраструктура."
+});
+
 export function getLanguage() {
   const stored = localStorage.getItem(LANGUAGE_KEY);
   return translations[stored] ? stored : "no";
@@ -1647,31 +1776,8 @@ export function t(key, values = {}) {
 }
 
 export function initLanguageSelector() {
+  initAnalyticsConsent();
   const nav = document.querySelector(".topnav");
-  const header = nav?.closest(".topbar");
-  if (header && document.body.dataset.titleKey !== "home.title" && !header.querySelector(".site-menu-toggle")) {
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "site-menu-toggle";
-    toggle.textContent = "☰";
-    toggle.setAttribute("aria-label", "Menu");
-    toggle.setAttribute("aria-expanded", "false");
-    nav.id ||= "siteNavigation";
-    toggle.setAttribute("aria-controls", nav.id);
-    header.insertBefore(toggle, nav);
-    const close = () => {
-      header.classList.remove("site-menu-open");
-      toggle.setAttribute("aria-expanded", "false");
-    };
-    toggle.addEventListener("click", () => {
-      const open = header.classList.toggle("site-menu-open");
-      toggle.setAttribute("aria-expanded", String(open));
-    });
-    header.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") { close(); toggle.focus(); }
-    });
-    nav.addEventListener("click", (event) => { if (event.target.closest("a")) close(); });
-  }
   if (!nav || nav.querySelector(".language-switcher")) {
     applyTranslations();
     return;
@@ -1735,6 +1841,91 @@ export function initLanguageSelector() {
   applyTranslations();
 }
 
+function initAnalyticsConsent() {
+  if (document.getElementById("analyticsConsent")) return;
+  const id = "G-BYZN6XQZ1J";
+  const key = "planmynordAnalyticsConsent";
+  const copy = {
+    no: ["Besøksstatistikk", "Tillater du Google Analytics for å måle besøk på nettsiden?", "Tillat", "Avslå", "Personvern", "Analyseinnstillinger"],
+    en: ["Visitor statistics", "Allow Google Analytics to measure visits to this website?", "Allow", "Decline", "Privacy", "Analytics settings"],
+    ru: ["Статистика посещений", "Разрешить Google Analytics для статистики посещений сайта?", "Разрешить", "Отклонить", "Конфиденциальность", "Настройки аналитики"]
+  };
+  let choice;
+  try { choice = localStorage.getItem(key); } catch {}
+  let loaded = false;
+  const panel = document.createElement("section");
+  panel.id = "analyticsConsent";
+  panel.className = "analytics-consent";
+  panel.setAttribute("role", "region");
+  panel.innerHTML = '<div><strong></strong><p></p><a href="/privacy.html"></a></div><div class="analytics-consent-actions"><button type="button" data-choice="denied"></button><button type="button" data-choice="granted"></button></div>';
+  const settings = document.createElement("button");
+  settings.type = "button";
+  settings.className = "analytics-settings";
+  document.body.append(panel);
+  (document.querySelector(".legal-footer-links, .legal-floating") || document.body).append(settings);
+  const render = () => {
+    const text = copy[getLanguage()] || copy.no;
+    panel.setAttribute("aria-label", text[0]);
+    panel.querySelector("strong").textContent = text[0];
+    panel.querySelector("p").textContent = text[1];
+    panel.querySelector("a").textContent = text[4];
+    panel.querySelector('[data-choice="granted"]').textContent = text[2];
+    panel.querySelector('[data-choice="denied"]').textContent = text[3];
+    settings.textContent = text[5];
+  };
+  const enable = () => {
+    // Keep account, verification and payment URLs out of analytics.
+    if (/\/(account|profile|admin|verify-email|auth|payment-)/.test(location.pathname)) return;
+    window[`ga-disable-${id}`] = false;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    window.gtag("consent", "update", { analytics_storage: "granted", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
+    if (loaded) return;
+    loaded = true;
+    window.gtag("js", new Date());
+    window.gtag("config", id, {
+      page_location: location.origin + location.pathname,
+      page_referrer: document.referrer ? new URL(document.referrer).origin : "",
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false
+    });
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+    document.head.append(script);
+  };
+  const disable = () => {
+    window[`ga-disable-${id}`] = true;
+    window.gtag?.("consent", "update", { analytics_storage: "denied" });
+    const domains = ["", location.hostname, "." + location.hostname, ".planmynord.com"];
+    document.cookie.split(";").map((cookie) => cookie.trim().split("=")[0]).filter((name) => /^_ga(?:_|$)/.test(name)).forEach((name) => {
+      domains.forEach((domain) => { document.cookie = `${name}=; Max-Age=0; path=/${domain ? `; domain=${domain}` : ""}`; });
+    });
+  };
+  settings.addEventListener("click", () => {
+    panel.hidden = false;
+    panel.querySelector("button").focus();
+  });
+  panel.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-choice]");
+    if (!button) return;
+    choice = button.dataset.choice;
+    try { localStorage.setItem(key, choice); } catch {}
+    if (choice === "granted") enable(); else disable();
+    panel.hidden = true;
+    settings.focus();
+  });
+  window.addEventListener("storage", (event) => {
+    if (event.key !== key) return;
+    if (event.newValue === "granted") enable(); else disable();
+    panel.hidden = event.newValue === "granted" || event.newValue === "denied";
+  });
+  document.addEventListener("languagechange", render);
+  render();
+  panel.hidden = choice === "granted" || choice === "denied";
+  if (choice === "granted") enable(); else disable();
+}
+
 export function applyTranslations() {
   const language = getLanguage();
   document.documentElement.lang = language;
@@ -1764,6 +1955,8 @@ export function applyTranslations() {
   });
 
   const titleKey = document.body?.dataset.titleKey;
+  const description = document.querySelector('meta[data-i18n-content]');
+  if (description) description.content = t(description.dataset.i18nContent);
   if (titleKey) {
     document.title = t(titleKey);
   }

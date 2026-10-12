@@ -6,7 +6,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4170638776610956" crossorigin="anonymous"></script>
   <title>Profil</title>
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
-  <link rel="stylesheet" href="style.css?v=reliability-1" />
+  <link rel="stylesheet" href="style.css?v=analytics-1" />
 </head>
 <body>
   <header class="topbar">
@@ -79,6 +79,37 @@
         </div>
       </section>
 
+      <section class="profile-routes-block vpn-account-block">
+        <div class="profile-section-heading">
+          <div>
+            <p class="store-kicker">PlanMyNord VPN</p>
+            <h2>VPN и устройства</h2>
+            <p id="vpnSubscriptionStatus">Загружаем подписку...</p>
+          </div>
+          <span id="vpnDeviceLimit" class="vpn-plan-badge">Бесплатно</span>
+        </div>
+        <form id="vpnDeviceForm" class="vpn-device-form">
+          <label>
+            <span>Название устройства</span>
+            <input id="vpnDeviceName" type="text" maxlength="60" placeholder="Мой телефон" required />
+          </label>
+          <label>
+            <span>Тип</span>
+            <select id="vpnDevicePlatform">
+              <option value="android">Android</option>
+              <option value="windows">Windows</option>
+              <option value="ios">iPhone / iPad</option>
+              <option value="macos">macOS</option>
+              <option value="linux">Linux</option>
+              <option value="other">Другое</option>
+            </select>
+          </label>
+          <button type="submit">Добавить устройство</button>
+        </form>
+        <p id="vpnDeviceMessage" class="auth-message" aria-live="polite"></p>
+        <div id="vpnDeviceList" class="vpn-device-list"></div>
+      </section>
+
       <section class="profile-routes-block">
         <div class="profile-section-heading">
           <div>
@@ -137,12 +168,13 @@
       <a href="privacy.html" data-i18n="footer.privacy">РљРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚СЊ</a>
       <a href="cookies.html">Cookies</a>
       <a href="about.html" data-i18n="nav.about">О проекте</a>
+      <a href="me.html" data-i18n="me.nav">Om meg</a>
       <a href="refund.html" data-i18n="footer.refund">Р’РѕР·РІСЂР°С‚</a>
     </nav>
   </footer>
 
-  <script type="module" src="./js/profile.js?v=reliability-2"></script>
-  <script type="module" src="./js/support-chat.js?v=reliability-2"></script>
+  <script type="module" src="./js/profile.js?v=author-1"></script>
+  <script type="module" src="./js/support-chat.js?v=author-1"></script>
 </body>
 </html>
 

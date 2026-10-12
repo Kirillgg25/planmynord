@@ -1,6 +1,6 @@
 import { updateAuthNav } from "./auth.js?v=reliability-1";
 import { initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=reliability-1";
+import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=author-1";
 import { createDateRangePicker } from "./date-picker.js?v=shared-ui-3";
 import { createPopupController } from "./popup-controller.js?v=shared-ui-2";
 import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
@@ -148,6 +148,7 @@ function renderTicketLinks() {
 
   if (!rawFrom) {
     if (summary) {
+      summary.classList.add("is-empty");
       summary.textContent = t("tickets.empty");
     }
 
@@ -159,6 +160,7 @@ function renderTicketLinks() {
   }
 
   if (summary) {
+    summary.classList.remove("is-empty");
     summary.innerHTML = renderTicketSummary({
       from,
       fromAirport,

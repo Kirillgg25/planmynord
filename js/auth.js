@@ -1,4 +1,4 @@
-import { t } from "./i18n.js?v=reliability-1";
+import { t } from "./i18n.js?v=author-1";
 
 export async function registerUser({ name, email, password }) {
   return requestJson("/api/register", {
@@ -102,6 +102,30 @@ export async function deleteTicket(ticketId) {
 
 export async function getVipProduct() {
   return requestJson("/api/vip/product");
+}
+
+export async function getVpnAccount() {
+  return requestJson("/api/vpn/account");
+}
+
+export async function addVpnDevice({ name, platform }) {
+  return requestJson("/api/vpn/devices", {
+    method: "POST",
+    body: JSON.stringify({ name, platform })
+  });
+}
+
+export async function renameVpnDevice(deviceId, name) {
+  return requestJson(`/api/vpn/devices/${encodeURIComponent(deviceId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name })
+  });
+}
+
+export async function removeVpnDevice(deviceId) {
+  return requestJson(`/api/vpn/devices/${encodeURIComponent(deviceId)}`, {
+    method: "DELETE"
+  });
 }
 
 export async function createCardVipPayment() {

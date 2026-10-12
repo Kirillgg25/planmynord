@@ -1,4 +1,4 @@
-import { getLanguage, t } from "./i18n.js?v=reliability-1";
+import { getLanguage, t } from "./i18n.js?v=author-1";
 import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
 
 const STORAGE_KEY = "tripplannerSupportHistory";
@@ -50,19 +50,6 @@ function initSupportChat() {
   form = root.querySelector(".ai-support-form");
   input = root.querySelector(".ai-support-form input");
   toggleButton = root.querySelector(".ai-support-toggle");
-  const compactScreen = window.matchMedia("(max-width: 760px)");
-  const placeToggle = () => {
-    const header = document.querySelector(".topbar");
-    if (compactScreen.matches && header && document.body.dataset.titleKey !== "home.title") {
-      header.appendChild(toggleButton);
-    } else if (document.querySelector("#plannerApp .sidebar-header")) {
-      document.querySelector("#plannerApp .sidebar-header").appendChild(toggleButton);
-    } else {
-      root.prepend(toggleButton);
-    }
-  };
-  placeToggle();
-  compactScreen.addEventListener("change", placeToggle);
 
   toggleButton.addEventListener("click", togglePanel);
   root.querySelector(".ai-support-close").addEventListener("click", closePanel);

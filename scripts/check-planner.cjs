@@ -15,7 +15,7 @@ async function load(filename) {
 }
 
 (async () => {
-  const planner = await load(path.join(__dirname, "../js/planner.js"));
+  const planner = await load(path.join(__dirname, "../public/js/planner.js"));
   await planner.evaluate();
   const { createTripPlan } = planner.namespace;
   const base = { start: "Oslo", end: "Bergen", startDate: "2026-10-01", people: 2, carRentalEnabled: false };
@@ -41,7 +41,7 @@ async function load(filename) {
   const stops = ["Drammen", "Kongsberg", "Geilo"];
   const manual = createTripPlan({ ...base, endDate: "2026-10-05", budget: 15000, manualStops: stops });
   assert.deepEqual(manual.selectedStops, stops);
-  const itinerary = modules.get(path.resolve(__dirname, "../js/itinerary.js")).namespace;
+  const itinerary = modules.get(path.resolve(__dirname, "../public/js/itinerary.js")).namespace;
   for (const days of [1, 2, 5, 10]) {
     const plan = itinerary.distributeRouteDays("Oslo", [...stops, "Geilo"], "Bergen", days);
     assert.equal(plan.length, days);

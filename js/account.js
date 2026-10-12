@@ -7,7 +7,7 @@ import {
   updateAuthNav
 } from "./auth.js?v=reliability-1";
 import { initCurrencySelector } from "./currency.js?v=account-oauth-1";
-import { applyTranslations, initLanguageSelector, t } from "./i18n.js?v=reliability-1";
+import { applyTranslations, initLanguageSelector, t } from "./i18n.js?v=author-1";
 
 const registerForm = document.getElementById("registerForm");
 const loginForm = document.getElementById("loginForm");
