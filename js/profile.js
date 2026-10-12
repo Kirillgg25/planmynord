@@ -6,6 +6,9 @@ import {
   deleteTicket,
   deleteTrip,
   getCurrentUser,
+  getVpnProduct,
+  createVpnCardPayment,
+  createVpnVippsPayment,
   getSavedTrips,
   getSavedTickets,
   getVipProduct,
@@ -55,9 +58,19 @@ const vpnDeviceMessage = document.getElementById("vpnDeviceMessage");
 const vpnDeviceList = document.getElementById("vpnDeviceList");
 const vpnSubscriptionStatus = document.getElementById("vpnSubscriptionStatus");
 const vpnDeviceLimit = document.getElementById("vpnDeviceLimit");
+const vpnProductDescription = document.getElementById("vpnProductDescription");
+const vpnPurchaseConsent = document.getElementById("vpnPurchaseConsent");
+const buyVpnCardBtn = document.getElementById("buyVpnCardBtn");
+const buyVpnVippsBtn = document.getElementById("buyVpnVippsBtn");
+const vpnPurchaseMessage = document.getElementById("vpnPurchaseMessage");
 let currentTrips = [];
 let currentTickets = [];
 let currentVipProduct = null;
+
+if (location.protocol === "file:") {
+  const current = document.querySelector('script[type="module"][src*="profile.js"]');
+  if (current) current.src = `./js/profile.js?v=${Date.now()}`;
+}
 
 function showMessage(message, type = "success") {
   profileMessage.textContent = message;
@@ -81,10 +94,11 @@ function vpnPlatformLabel(platform) {
 }
 
 function renderVpnAccount(subscription, devices) {
-  const active = subscription?.status === "active";
+  const active = subscription?.plan === "vpn" && subscription?.status === "active"
+    && (!subscription.endsAt || new Date(subscription.endsAt).getTime() > Date.now());
   vpnSubscriptionStatus.textContent = active
-    ? "Подписка активна. Конфигурация появится после подключения VPN-сервера."
-    : "Подписка неактивна.";
+    ? `VPN активен до ${formatVipDate(subscription.endsAt)}. Подключение появится после настройки сервера.`
+    : "VPN не оплачен или срок подписки завершился.";
   vpnDeviceLimit.textContent = `${subscription?.plan === "free" ? "Бесплатно" : subscription?.plan || "VPN"} · ${devices.length}/${subscription?.deviceLimit || 0}`;
 
   if (!devices.length) {
@@ -106,6 +120,47 @@ function renderVpnAccount(subscription, devices) {
   `).join("");
 }
 
+async function loadVpnProduct() {
+  const result = await getVpnProduct();
+  if (result.error || !result.product) {
+    vpnProductDescription.textContent = result.error || "Не удалось загрузить тариф.";
+    buyVpnCardBtn.disabled = true;
+    buyVpnVippsBtn.disabled = true;
+    return;
+  }
+  const product = result.product;
+  vpnProductDescription.textContent = `${product.name} · ${product.priceNok} NOK · ${product.durationDays} дней · до ${product.deviceLimit} устройств`;
+  buyVpnCardBtn.disabled = !result.providers?.stripe;
+  buyVpnVippsBtn.disabled = !result.providers?.vipps;
+  if (!result.configured) vpnPurchaseMessage.textContent = "Оплата доступна, подключение VPN появится после настройки сервера.";
+}
+
+async function startVpnPayment(provider) {
+  if (!vpnPurchaseConsent.checked) {
+    vpnPurchaseMessage.textContent = "Сначала подтвердите условия и цену.";
+    vpnPurchaseMessage.className = "auth-message error";
+    return;
+  }
+  const button = provider === "card" ? buyVpnCardBtn : buyVpnVippsBtn;
+  button.disabled = true;
+  vpnPurchaseMessage.textContent = "Готовим страницу оплаты…";
+  vpnPurchaseMessage.className = "auth-message";
+  try {
+    const result = provider === "card" ? await createVpnCardPayment() : await createVpnVippsPayment();
+    if (result.error) {
+      vpnPurchaseMessage.textContent = result.error;
+      vpnPurchaseMessage.className = "auth-message error";
+      return;
+    }
+    window.location.href = result.url;
+  } catch {
+    vpnPurchaseMessage.textContent = "Не удалось начать оплату VPN.";
+    vpnPurchaseMessage.className = "auth-message error";
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function loadVpnAccount() {
   const result = await getVpnAccount();
   if (result.error) {
@@ -116,6 +171,47 @@ async function loadVpnAccount() {
   vpnDeviceMessage.textContent = "";
   vpnDeviceMessage.className = "auth-message";
   renderVpnAccount(result.subscription, result.devices || []);
+}
+
+async function loadVpnProduct() {
+  const result = await getVpnProduct();
+  if (result.error || !result.product) {
+    vpnProductDescription.textContent = result.error || "Не удалось загрузить тариф.";
+    buyVpnCardBtn.disabled = true;
+    buyVpnVippsBtn.disabled = true;
+    return;
+  }
+  const product = result.product;
+  vpnProductDescription.textContent = `${product.name} · ${product.priceNok} NOK · ${product.durationDays} дней · до ${product.deviceLimit} устройств`;
+  buyVpnCardBtn.disabled = !result.providers?.stripe;
+  buyVpnVippsBtn.disabled = !result.providers?.vipps;
+  if (!result.configured) vpnPurchaseMessage.textContent = "Оплата доступна, подключение VPN появится после настройки сервера.";
+}
+
+async function startVpnPayment(provider) {
+  if (!vpnPurchaseConsent.checked) {
+    vpnPurchaseMessage.textContent = "Сначала подтвердите условия и цену.";
+    vpnPurchaseMessage.className = "auth-message error";
+    return;
+  }
+  const button = provider === "card" ? buyVpnCardBtn : buyVpnVippsBtn;
+  button.disabled = true;
+  vpnPurchaseMessage.textContent = "Готовим страницу оплаты…";
+  vpnPurchaseMessage.className = "auth-message";
+  try {
+    const result = provider === "card" ? await createVpnCardPayment() : await createVpnVippsPayment();
+    if (result.error) {
+      vpnPurchaseMessage.textContent = result.error;
+      vpnPurchaseMessage.className = "auth-message error";
+      return;
+    }
+    window.location.href = result.url;
+  } catch {
+    vpnPurchaseMessage.textContent = "Не удалось начать оплату VPN.";
+    vpnPurchaseMessage.className = "auth-message error";
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function renderTrips(trips) {
@@ -623,6 +719,9 @@ document.addEventListener("currencychange", () => {
   renderTickets(currentTickets);
 });
 
+buyVpnCardBtn.addEventListener("click", () => startVpnPayment("card"));
+buyVpnVippsBtn.addEventListener("click", () => startVpnPayment("vipps"));
+
 document.addEventListener("languagechange", async () => {
   applyTranslations();
   renderLegalConsent();
@@ -642,4 +741,5 @@ initLanguageSelector();
 applyTranslations();
 renderLegalConsent();
 loadVipProduct();
+loadVpnProduct();
 renderProfile();

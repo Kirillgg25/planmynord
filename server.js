@@ -65,6 +65,10 @@ const DEFAULT_CAR_DAILY_NOK = 549;
 const VIP_PLAN_NAME = process.env.SUPPORT_PLAN_NAME || "PlanMyNord Support";
 const VIP_PRICE_NOK = Math.max(Number(process.env.SUPPORT_PRICE_NOK || process.env.VIP_PRICE_NOK) || 99, 1);
 const VIP_DURATION_DAYS = Math.max(Number(process.env.VIP_DURATION_DAYS) || 30, 1);
+const VPN_PLAN_NAME = process.env.VPN_PLAN_NAME || "PlanMyNord VPN";
+const VPN_PRICE_NOK = Math.max(Number(process.env.VPN_PRICE_NOK) || 99, 1);
+const VPN_DURATION_DAYS = Math.max(Number(process.env.VPN_DURATION_DAYS) || 30, 1);
+const VPN_DEVICE_LIMIT = Math.max(Number(process.env.VPN_DEVICE_LIMIT) || 3, 1);
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 const STRIPE_VIP_PRICE_ID = process.env.STRIPE_VIP_PRICE_ID || "";
@@ -1641,6 +1645,10 @@ function getVipProduct() {
   };
 }
 
+function getVpnProduct() {
+  return { name: VPN_PLAN_NAME, priceNok: VPN_PRICE_NOK, durationDays: VPN_DURATION_DAYS, deviceLimit: VPN_DEVICE_LIMIT };
+}
+
 function createPaymentRecord({ userId, provider, providerPaymentId = "" }) {
   const database = openDatabase();
   const payment = {
@@ -1731,9 +1739,20 @@ async function completePaymentFromProvider({ provider, providerPaymentId, paymen
          WHERE id = ?`
       )
       .run(providerPaymentId || payment.provider_payment_id || "", paidAt, payment.id);
-    database
-      .prepare("UPDATE users SET vip_plan = ?, vip_until = ? WHERE id = ?")
-      .run(payment.plan, vipUntil, payment.user_id);
+    if (payment.plan === "vpn") {
+      const currentVpn = database.prepare("SELECT ends_at FROM vpn_subscriptions WHERE user_id = ?").get(payment.user_id);
+      const currentVpnEnd = currentVpn?.ends_at ? new Date(currentVpn.ends_at).getTime() : 0;
+      const vpnStart = Number.isFinite(currentVpnEnd) && currentVpnEnd > now ? currentVpnEnd : now;
+      const vpnEnd = new Date(vpnStart + payment.vip_days * 24 * 60 * 60 * 1000).toISOString();
+      database.prepare(`
+        UPDATE vpn_subscriptions
+        SET plan = 'vpn', status = 'active', device_limit = ?, starts_at = ?, ends_at = ?, updated_at = ?
+        WHERE user_id = ?
+      `).run(VPN_DEVICE_LIMIT, paidAt, vpnEnd, paidAt, payment.user_id);
+    } else {
+      database.prepare("UPDATE users SET vip_plan = ?, vip_until = ? WHERE id = ?")
+        .run(payment.plan, vipUntil, payment.user_id);
+    }
     database.exec("COMMIT");
   } catch (error) {
     database.exec("ROLLBACK");
@@ -2066,8 +2085,8 @@ async function createStripeCheckoutSession(user, payment) {
     params.set("line_items[0][price]", STRIPE_VIP_PRICE_ID);
   } else {
     params.set("line_items[0][price_data][currency]", "nok");
-    params.set("line_items[0][price_data][product_data][name]", VIP_PLAN_NAME);
-    params.set("line_items[0][price_data][unit_amount]", String(VIP_PRICE_NOK * 100));
+    params.set("line_items[0][price_data][product_data][name]", payment.plan === "vpn" ? VPN_PLAN_NAME : VIP_PLAN_NAME);
+    params.set("line_items[0][price_data][unit_amount]", String((payment.plan === "vpn" ? VPN_PRICE_NOK : VIP_PRICE_NOK) * 100));
   }
 
   params.set("line_items[0][quantity]", "1");
@@ -2125,7 +2144,7 @@ async function createVippsPayment(user, payment) {
     body: JSON.stringify({
       amount: {
         currency: "NOK",
-        value: VIP_PRICE_NOK * 100
+        value: (payment.plan === "vpn" ? VPN_PRICE_NOK : VIP_PRICE_NOK) * 100
       },
       paymentMethod: {
         type: "WALLET"
@@ -2133,7 +2152,7 @@ async function createVippsPayment(user, payment) {
       reference,
       returnUrl: `${APP_BASE_URL}/payment-success.html`,
       userFlow: "WEB_REDIRECT",
-      paymentDescription: VIP_PLAN_NAME,
+      paymentDescription: payment.plan === "vpn" ? VPN_PLAN_NAME : VIP_PLAN_NAME,
       metadata: {
         paymentId: payment.id,
         userId: user.id
@@ -2164,6 +2183,57 @@ app.get("/api/vip/product", (req, res) => {
       )
     }
   });
+});
+
+app.get("/api/vpn/product", (req, res) => {
+  res.json({
+    product: getVpnProduct(),
+    configured: false,
+    providers: {
+      stripe: Boolean(STRIPE_SECRET_KEY),
+      vipps: Boolean(VIPPS_CLIENT_ID && VIPPS_CLIENT_SECRET && VIPPS_SUBSCRIPTION_KEY && VIPPS_MERCHANT_SERIAL_NUMBER)
+    }
+  });
+});
+
+function createVpnPaymentRecord({ userId, provider }) {
+  const payment = {
+    id: randomUUID(), userId, provider, providerPaymentId: "", amountNok: VPN_PRICE_NOK,
+    currency: "NOK", status: "pending", plan: "vpn", vipDays: VPN_DURATION_DAYS,
+    createdAt: new Date().toISOString()
+  };
+  openDatabase().prepare(`
+    INSERT INTO payments (id,user_id,provider,provider_payment_id,amount_nok,currency,status,plan,vip_days,created_at)
+    VALUES (?,?,?,?,?,?,?,?,?,?)
+  `).run(payment.id, payment.userId, payment.provider, "", payment.amountNok, payment.currency,
+    payment.status, payment.plan, payment.vipDays, payment.createdAt);
+  return payment;
+}
+
+app.post("/api/vpn/payment/card/create", requireAuth, writeLimiter, async (req, res) => {
+  if (!STRIPE_SECRET_KEY) return res.status(503).json({ error: "Stripe er ikke satt opp på serveren ennå." });
+  try {
+    const payment = createVpnPaymentRecord({ userId: req.currentUser.id, provider: "stripe" });
+    const url = await createStripeCheckoutSession(req.currentUser, payment);
+    res.status(201).json({ url });
+  } catch (error) {
+    console.error("VPN card payment creation failed:", error);
+    res.status(500).json({ error: "Не удалось начать оплату VPN." });
+  }
+});
+
+app.post("/api/vpn/payment/vipps/create", requireAuth, writeLimiter, async (req, res) => {
+  if (!(VIPPS_CLIENT_ID && VIPPS_CLIENT_SECRET && VIPPS_SUBSCRIPTION_KEY && VIPPS_MERCHANT_SERIAL_NUMBER)) {
+    return res.status(503).json({ error: "Vipps er ikke satt opp på serveren ennå." });
+  }
+  try {
+    const payment = createVpnPaymentRecord({ userId: req.currentUser.id, provider: "vipps" });
+    const url = await createVippsPayment(req.currentUser, payment);
+    res.status(201).json({ url });
+  } catch (error) {
+    console.error("VPN Vipps payment creation failed:", error);
+    res.status(500).json({ error: "Не удалось начать оплату VPN." });
+  }
 });
 
 const TRAFFIC_SIGNAL_NVDB_TYPE_ID = 90;
@@ -2841,6 +2911,20 @@ app.get("/api/vpn/account", requireAuth, (req, res) => {
   `).all(req.currentUser.id).map(publicVpnDevice);
 
   res.json({ subscription: publicVpnSubscription(subscription), devices });
+});
+
+app.post("/api/vpn/client-token", requireAuth, writeLimiter, (req, res) => {
+  const deviceId = String(req.body.deviceId || "").trim();
+  if (!deviceId) return res.status(400).json({ error: "Устройство не указано." });
+  const device = openDatabase().prepare(`
+    SELECT id FROM vpn_devices WHERE id = ? AND user_id = ? AND status = 'active'
+  `).get(deviceId, req.currentUser.id);
+  if (!device) return res.status(404).json({ error: "Активное устройство не найдено." });
+  res.status(503).json({ error: "Для выдачи профилей нужно подключить сервер VPN." });
+});
+
+app.get("/api/vpn/client-profile", writeLimiter, (req, res) => {
+  res.set("Cache-Control", "no-store").status(503).json({ error: "Профили VPN пока не выдаются: сервер VPN не подключён." });
 });
 
 app.post("/api/vpn/devices", requireAuth, writeLimiter, (req, res) => {

@@ -108,6 +108,18 @@ export async function getVpnAccount() {
   return requestJson("/api/vpn/account");
 }
 
+export async function getVpnProduct() {
+  return requestJson("/api/vpn/product");
+}
+
+export async function createVpnCardPayment() {
+  return requestJson("/api/vpn/payment/card/create", { method: "POST" });
+}
+
+export async function createVpnVippsPayment() {
+  return requestJson("/api/vpn/payment/vipps/create", { method: "POST" });
+}
+
 export async function addVpnDevice({ name, platform }) {
   return requestJson("/api/vpn/devices", {
     method: "POST",
