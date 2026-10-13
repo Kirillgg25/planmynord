@@ -130,9 +130,9 @@ async function loadVpnProduct() {
   }
   const product = result.product;
   vpnProductDescription.textContent = `${product.name} · ${product.priceNok} NOK · ${product.durationDays} дней · до ${product.deviceLimit} устройств`;
-  buyVpnCardBtn.disabled = !result.providers?.stripe;
-  buyVpnVippsBtn.disabled = !result.providers?.vipps;
-  if (!result.configured) vpnPurchaseMessage.textContent = "Оплата доступна, подключение VPN появится после настройки сервера.";
+  buyVpnCardBtn.disabled = !result.providers?.stripe || !result.configured;
+  buyVpnVippsBtn.disabled = !result.providers?.vipps || !result.configured;
+  if (!result.configured) vpnPurchaseMessage.textContent = "Оплата включится после подключения серверной выдачи VPN-профилей.";
 }
 
 async function startVpnPayment(provider) {
@@ -171,47 +171,6 @@ async function loadVpnAccount() {
   vpnDeviceMessage.textContent = "";
   vpnDeviceMessage.className = "auth-message";
   renderVpnAccount(result.subscription, result.devices || []);
-}
-
-async function loadVpnProduct() {
-  const result = await getVpnProduct();
-  if (result.error || !result.product) {
-    vpnProductDescription.textContent = result.error || "Не удалось загрузить тариф.";
-    buyVpnCardBtn.disabled = true;
-    buyVpnVippsBtn.disabled = true;
-    return;
-  }
-  const product = result.product;
-  vpnProductDescription.textContent = `${product.name} · ${product.priceNok} NOK · ${product.durationDays} дней · до ${product.deviceLimit} устройств`;
-  buyVpnCardBtn.disabled = !result.providers?.stripe;
-  buyVpnVippsBtn.disabled = !result.providers?.vipps;
-  if (!result.configured) vpnPurchaseMessage.textContent = "Оплата доступна, подключение VPN появится после настройки сервера.";
-}
-
-async function startVpnPayment(provider) {
-  if (!vpnPurchaseConsent.checked) {
-    vpnPurchaseMessage.textContent = "Сначала подтвердите условия и цену.";
-    vpnPurchaseMessage.className = "auth-message error";
-    return;
-  }
-  const button = provider === "card" ? buyVpnCardBtn : buyVpnVippsBtn;
-  button.disabled = true;
-  vpnPurchaseMessage.textContent = "Готовим страницу оплаты…";
-  vpnPurchaseMessage.className = "auth-message";
-  try {
-    const result = provider === "card" ? await createVpnCardPayment() : await createVpnVippsPayment();
-    if (result.error) {
-      vpnPurchaseMessage.textContent = result.error;
-      vpnPurchaseMessage.className = "auth-message error";
-      return;
-    }
-    window.location.href = result.url;
-  } catch {
-    vpnPurchaseMessage.textContent = "Не удалось начать оплату VPN.";
-    vpnPurchaseMessage.className = "auth-message error";
-  } finally {
-    button.disabled = false;
-  }
 }
 
 function renderTrips(trips) {

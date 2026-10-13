@@ -69,9 +69,11 @@ const VPN_PLAN_NAME = process.env.VPN_PLAN_NAME || "PlanMyNord VPN";
 const VPN_PRICE_NOK = Math.max(Number(process.env.VPN_PRICE_NOK) || 99, 1);
 const VPN_DURATION_DAYS = Math.max(Number(process.env.VPN_DURATION_DAYS) || 30, 1);
 const VPN_DEVICE_LIMIT = Math.max(Number(process.env.VPN_DEVICE_LIMIT) || 3, 1);
+const VPN_PROFILE_DELIVERY_ENABLED = false;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 const STRIPE_VIP_PRICE_ID = process.env.STRIPE_VIP_PRICE_ID || "";
+const STRIPE_VPN_PRICE_ID = process.env.STRIPE_VPN_PRICE_ID || "";
 const VIPPS_CLIENT_ID = process.env.VIPPS_CLIENT_ID || "";
 const VIPPS_CLIENT_SECRET = process.env.VIPPS_CLIENT_SECRET || "";
 const VIPPS_SUBSCRIPTION_KEY = process.env.VIPPS_SUBSCRIPTION_KEY || "";
@@ -2081,8 +2083,9 @@ async function createStripeCheckoutSession(user, payment) {
     "payment_method_types[0]": "card"
   });
 
-  if (STRIPE_VIP_PRICE_ID) {
-    params.set("line_items[0][price]", STRIPE_VIP_PRICE_ID);
+  const configuredStripePriceId = payment.plan === "vpn" ? STRIPE_VPN_PRICE_ID : STRIPE_VIP_PRICE_ID;
+  if (configuredStripePriceId) {
+    params.set("line_items[0][price]", configuredStripePriceId);
   } else {
     params.set("line_items[0][price_data][currency]", "nok");
     params.set("line_items[0][price_data][product_data][name]", payment.plan === "vpn" ? VPN_PLAN_NAME : VIP_PLAN_NAME);
@@ -2188,7 +2191,7 @@ app.get("/api/vip/product", (req, res) => {
 app.get("/api/vpn/product", (req, res) => {
   res.json({
     product: getVpnProduct(),
-    configured: false,
+    configured: VPN_PROFILE_DELIVERY_ENABLED,
     providers: {
       stripe: Boolean(STRIPE_SECRET_KEY),
       vipps: Boolean(VIPPS_CLIENT_ID && VIPPS_CLIENT_SECRET && VIPPS_SUBSCRIPTION_KEY && VIPPS_MERCHANT_SERIAL_NUMBER)
@@ -2211,6 +2214,7 @@ function createVpnPaymentRecord({ userId, provider }) {
 }
 
 app.post("/api/vpn/payment/card/create", requireAuth, writeLimiter, async (req, res) => {
+  if (!VPN_PROFILE_DELIVERY_ENABLED) return res.status(503).json({ error: "Оплата VPN включится после настройки выдачи VPN-профилей." });
   if (!STRIPE_SECRET_KEY) return res.status(503).json({ error: "Stripe er ikke satt opp på serveren ennå." });
   try {
     const payment = createVpnPaymentRecord({ userId: req.currentUser.id, provider: "stripe" });
@@ -2223,6 +2227,7 @@ app.post("/api/vpn/payment/card/create", requireAuth, writeLimiter, async (req, 
 });
 
 app.post("/api/vpn/payment/vipps/create", requireAuth, writeLimiter, async (req, res) => {
+  if (!VPN_PROFILE_DELIVERY_ENABLED) return res.status(503).json({ error: "Оплата VPN включится после настройки выдачи VPN-профилей." });
   if (!(VIPPS_CLIENT_ID && VIPPS_CLIENT_SECRET && VIPPS_SUBSCRIPTION_KEY && VIPPS_MERCHANT_SERIAL_NUMBER)) {
     return res.status(503).json({ error: "Vipps er ikke satt opp på serveren ennå." });
   }
