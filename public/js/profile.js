@@ -81,10 +81,11 @@ function vpnPlatformLabel(platform) {
 }
 
 function renderVpnAccount(subscription, devices) {
-  const active = subscription?.status === "active";
+  const active = subscription?.plan === "vpn" && subscription?.status === "active"
+    && new Date(subscription.endsAt).getTime() > Date.now();
   vpnSubscriptionStatus.textContent = active
     ? "Подписка активна. Конфигурация появится после подключения VPN-сервера."
-    : "Подписка неактивна.";
+    : "Закрытое тестирование. VPN-сервер ещё не подключён.";
   vpnDeviceLimit.textContent = `${subscription?.plan === "free" ? "Бесплатно" : subscription?.plan || "VPN"} · ${devices.length}/${subscription?.deviceLimit || 0}`;
 
   if (!devices.length) {
@@ -262,15 +263,7 @@ function renderLegalConsent() {
 }
 
 function renderVipProductDescription() {
-  if (!currentVipProduct) {
-    return;
-  }
-
-  vipDescription.textContent = t("profile.vipDescription", {
-    name: currentVipProduct.name,
-    price: currentVipProduct.priceNok,
-    days: currentVipProduct.durationDays
-  });
+  return;
 }
 
 function renderAvatar(user) {
@@ -309,14 +302,9 @@ function formatVipDate(value) {
 }
 
 function renderVip(user) {
-  if (user.vip?.active) {
-    profileVipStatus.textContent = t("profile.supportActiveUntil", { date: formatVipDate(user.vip.until) });
-    vipBlock.hidden = false;
-    return;
-  }
-
+  vipBlock.hidden = true;
   profileVipStatus.textContent = t("profile.supportOptional");
-  vipBlock.hidden = false;
+  return;
 }
 
 async function loadVipProduct() {
@@ -389,7 +377,10 @@ async function renderProfile() {
   renderAvatar(user);
   renderTrips(trips);
   await loadTickets();
-  await loadVpnAccount();
+  document.querySelector(".vpn-account-block").hidden = !user.vpnPreview;
+  const vpnPurchase = document.querySelector(".vpn-purchase-block");
+  if (vpnPurchase) vpnPurchase.hidden = !user.vpnPreview;
+  if (user.vpnPreview) await loadVpnAccount();
 }
 
 async function fileToAvatarDataUrl(file) {
@@ -641,5 +632,4 @@ initCurrencySelector();
 initLanguageSelector();
 applyTranslations();
 renderLegalConsent();
-loadVipProduct();
 renderProfile();

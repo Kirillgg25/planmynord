@@ -337,7 +337,31 @@ body[data-title-key="index.title"] .legal-floating {
   display: grid;
   gap: 18px;
   border: 1px solid #b9d7ff;
-  background: linear-gradient(145deg, #f7fbff 0%, #eef6ff 100%);
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+}
+.vpn-account-block[hidden], .vpn-purchase-block[hidden] { display: none !important; }
+.legacy-support-block, .vpn-purchase-block { display: none !important; }
+.vpn-offer { display: grid; gap: 10px; padding: 18px 0; border-top: 1px solid #d6e0eb; }
+.vpn-offer strong { font-size: 24px; color: #142d4c; }
+.vpn-offer p { margin: 0; line-height: 1.6; color: #526175; }
+.vpn-offer button { justify-self: start; width: auto; margin: 4px 0; }
+.vpn-account-block .profile-section-heading { margin: 0; gap: 16px; flex-wrap: wrap; }
+.vpn-account-block .store-kicker { margin: 0 0 6px; font-size: 12px; font-weight: 700; }
+.vpn-account-block h2 { margin: 0; font-size: 22px; }
+.vpn-account-block #vpnSubscriptionStatus { margin: 8px 0 0; color: #526175; line-height: 1.6; }
+.vpn-account-block .auth-message:empty { display: none; }
+.vpn-account-block .vpn-device-form { margin: 0; padding: 20px 0; border-block: 1px solid #e4eaf1; }
+.vpn-account-block .vpn-device-form > * { min-width: 0; margin: 0; }
+.vpn-account-block .vpn-device-form input,
+.vpn-account-block .vpn-device-form select,
+.vpn-account-block .vpn-device-form button { box-sizing: border-box; min-height: 44px; margin: 0; font-size: 14px; }
+.vpn-account-block .vpn-device-list > p { margin: 0; padding: 16px; background: #f4f7fa; color: #526175; border-radius: 6px; line-height: 1.6; }
+.vpn-account-block .vpn-device-card { border-radius: 8px; }
+@media (max-width: 720px) {
+  .vpn-account-block { padding: 16px; }
+  .vpn-account-block .vpn-device-form { grid-template-columns: 1fr; }
 }
 .vpn-plan-badge {
   align-self: start;

@@ -6,7 +6,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4170638776610956" crossorigin="anonymous"></script>
   <title>Profil</title>
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
-  <link rel="stylesheet" href="style.css?v=analytics-1" />
+  <link rel="stylesheet" href="style.css?v=vpn-preview-2" />
 </head>
 <body>
   <header class="topbar">
@@ -61,7 +61,7 @@
         </div>
       </div>
 
-      <section class="vip-block" hidden>
+      <section class="vip-block legacy-support-block" hidden>
         <div>
           <p class="store-kicker" data-i18n="profile.supportKicker">Support</p>
           <h2 data-i18n="profile.supportTitle">Support PlanMyNord</h2>
@@ -79,7 +79,7 @@
         </div>
       </section>
 
-      <section class="profile-routes-block vpn-account-block">
+      <section class="profile-routes-block vpn-account-block" hidden>
         <div class="profile-section-heading">
           <div>
             <p class="store-kicker">PlanMyNord VPN</p>
@@ -87,6 +87,12 @@
             <p id="vpnSubscriptionStatus">Загружаем подписку...</p>
           </div>
           <span id="vpnDeviceLimit" class="vpn-plan-badge">Бесплатно</span>
+        </div>
+        <div id="vpnOffer" class="vpn-offer">
+          <strong id="vpnOfferPrice"></strong>
+          <p id="vpnOfferNote"></p>
+          <button id="vpnBuy" type="button" disabled></button>
+          <p id="vpnConnectionNote" role="status"></p>
         </div>
         <form id="vpnDeviceForm" class="vpn-device-form">
           <label>
@@ -110,7 +116,7 @@
         <div id="vpnDeviceList" class="vpn-device-list"></div>
       </section>
 
-      <section class="profile-routes-block vpn-purchase-block">
+      <section class="profile-routes-block vpn-purchase-block" hidden>
         <div class="profile-section-heading">
           <div>
             <p class="store-kicker">PlanMyNord VPN</p>
@@ -184,13 +190,15 @@
       <a href="terms.html" data-i18n="footer.terms">РЈСЃР»РѕРІРёСЏ</a>
       <a href="privacy.html" data-i18n="footer.privacy">РљРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚СЊ</a>
       <a href="cookies.html">Cookies</a>
+      <a href="support.html" data-i18n="profile.supportTitle">Support PlanMyNord</a>
       <a href="about.html" data-i18n="nav.about">О проекте</a>
       <a href="me.html" data-i18n="me.nav">Om meg</a>
       <a href="refund.html" data-i18n="footer.refund">Р’РѕР·РІСЂР°С‚</a>
     </nav>
   </footer>
 
-  <script type="module" src="./js/profile.js?v=author-1"></script>
+  <script type="module" src="./js/profile.js?v=vpn-preview-2"></script>
+  <script type="module" src="./js/profile-vpn.js?v=1"></script>
   <script type="module" src="./js/support-chat.js?v=author-1"></script>
 </body>
 </html>

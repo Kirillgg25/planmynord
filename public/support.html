@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stott PlanMyNord</title>
+  <meta name="description" content="Support the development of PlanMyNord with a voluntary one-time contribution." />
+  <link rel="canonical" href="https://planmynord.com/support.html" />
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css?v=vpn-preview-2" />
+  <link rel="stylesheet" href="support.css?v=1" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="/">PlanMyNord</a>
+    <nav class="topnav">
+      <a href="index.html" data-i18n="nav.home">Hjem</a>
+      <a href="planner.html" data-i18n="nav.plan">Planlegg</a>
+      <a href="routes.html" data-i18n="nav.routes">Ruter</a>
+      <a href="tickets.html" data-i18n="nav.tickets">Flybilletter</a>
+      <a href="account.html" data-i18n="nav.account">Profil</a>
+    </nav>
+  </header>
+  <main class="support-page">
+    <header class="support-heading">
+      <img src="assets/logo.svg" width="56" height="56" alt="PlanMyNord" />
+      <h1 data-copy="title">Support PlanMyNord</h1>
+      <p data-copy="intro">Help develop an independent travel project.</p>
+    </header>
+    <form id="supportForm" class="support-form">
+      <fieldset>
+        <legend data-copy="amount">Amount in NOK</legend>
+        <div class="support-amounts">
+          <label><input type="radio" name="preset" value="10" /><span>10 NOK</span></label>
+          <label><input type="radio" name="preset" value="50" /><span>50 NOK</span></label>
+          <label><input type="radio" name="preset" value="100" checked /><span>100 NOK</span></label>
+          <label><input type="radio" name="preset" value="200" /><span>200 NOK</span></label>
+          <label><input type="radio" name="preset" value="500" /><span>500 NOK</span></label>
+          <label><input type="radio" name="preset" value="1000" /><span>1 000 NOK</span></label>
+        </div>
+      </fieldset>
+      <label class="support-custom"><span data-copy="custom">Your amount, NOK</span><input id="supportAmount" type="number" min="10" max="10000" step="1" value="100" required /></label>
+      <p data-copy="once">One-time contribution. No subscription. Site features remain available to everyone.</p>
+      <label class="support-consent"><input id="supportConsent" type="checkbox" required /><span data-copy="consent">I understand this is voluntary support and accept the terms and privacy policy.</span></label>
+      <nav class="support-legal"><a href="terms.html" data-i18n="footer.terms">Terms</a><a href="privacy.html" data-i18n="footer.privacy">Privacy</a><a href="refund.html" data-i18n="footer.refund">Refunds</a></nav>
+      <button id="supportPay" type="submit" disabled data-copy="pay">Pay by card</button>
+      <a id="supportLogin" href="account.html" hidden data-copy="login">Sign in to support the project</a>
+      <p id="supportStatus" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+  <script type="module" src="js/support-page.js?v=1"></script>
+</body>
+</html>

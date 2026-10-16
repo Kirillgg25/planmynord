@@ -66,9 +66,9 @@ const VIP_PLAN_NAME = process.env.SUPPORT_PLAN_NAME || "PlanMyNord Support";
 const VIP_PRICE_NOK = Math.max(Number(process.env.SUPPORT_PRICE_NOK || process.env.VIP_PRICE_NOK) || 99, 1);
 const VIP_DURATION_DAYS = Math.max(Number(process.env.VIP_DURATION_DAYS) || 30, 1);
 const VPN_PLAN_NAME = process.env.VPN_PLAN_NAME || "PlanMyNord VPN";
-const VPN_PRICE_NOK = Math.max(Number(process.env.VPN_PRICE_NOK) || 99, 1);
-const VPN_DURATION_DAYS = Math.max(Number(process.env.VPN_DURATION_DAYS) || 30, 1);
-const VPN_DEVICE_LIMIT = Math.max(Number(process.env.VPN_DEVICE_LIMIT) || 3, 1);
+const VPN_PRICE_NOK = 99;
+const VPN_DURATION_DAYS = 30;
+const VPN_DEVICE_LIMIT = 5;
 const VPN_PROFILE_DELIVERY_ENABLED = false;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
@@ -305,13 +305,18 @@ app.post(
       const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || "");
       const stripeSignature = req.headers["stripe-signature"];
 
-      if (STRIPE_WEBHOOK_SECRET && !isValidStripeSignature(rawBody, stripeSignature)) {
+      if (!STRIPE_WEBHOOK_SECRET || !isValidStripeSignature(rawBody, stripeSignature)) {
         return res.status(400).json({ error: "Invalid Stripe signature." });
       }
 
       const event = JSON.parse(rawBody.toString("utf8") || "{}");
 
-      if (event.type === "checkout.session.completed") {
+      if (event.type === "checkout.session.completed" && event.data?.object?.payment_status === "paid") {
+        const checkout = event.data.object;
+        const stored = openDatabase().prepare("SELECT * FROM payments WHERE id = ?").get(checkout.metadata?.paymentId || "");
+        if (!stored || checkout.amount_total !== stored.amount_nok * 100 || String(checkout.currency).toLowerCase() !== "nok") {
+          return res.status(400).json({ error: "Payment amount mismatch." });
+        }
         await completePaymentFromProvider({
           provider: "stripe",
           providerPaymentId: event.data?.object?.id,
@@ -405,6 +410,12 @@ app.use(
 );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "8kb" }));
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/") || req.path.startsWith("/auth/")) {
+    res.set("Cache-Control", "no-store");
+  }
+  next();
+});
 app.use(
   session({
     store: new SqliteSessionStore(),
@@ -422,9 +433,19 @@ app.use(
 
 app.use(publicSiteMiddleware(PUBLIC_DIR));
 
+// Private VPN preview: authorize every endpoint, including product and payments.
+app.use("/api/vpn", requireAuth, (req, res, next) => {
+  if (!canPreviewVpn(req.currentUser)) {
+    return res.status(404).json({ error: "Not found" });
+  }
+  next();
+});
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
+  skip: (req) => req.method === "POST" && req.path === "/api/login" &&
+    Date.now() < Date.parse(process.env.LOGIN_RATE_LIMIT_PAUSED_UNTIL || ""),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "For mange forsøk. Prøv igjen om 15 minutter." }
@@ -1122,6 +1143,10 @@ async function getHyreCarEstimate() {
   }
 }
 
+function canPreviewVpn(user) {
+  return user?.id === "b22e3c94-63ec-4d85-945f-05ec16aad38a";
+}
+
 function publicUser(user) {
   return {
     id: user.id,
@@ -1131,6 +1156,7 @@ function publicUser(user) {
     createdAt: user.createdAt,
     avatarUrl: user.avatarUrl || "",
     authProvider: user.oauthProvider || "password",
+    vpnPreview: canPreviewVpn(user),
     vip: getVipStatus(user),
     emailVerified: Boolean(user.emailVerified)
   };
@@ -1651,18 +1677,18 @@ function getVpnProduct() {
   return { name: VPN_PLAN_NAME, priceNok: VPN_PRICE_NOK, durationDays: VPN_DURATION_DAYS, deviceLimit: VPN_DEVICE_LIMIT };
 }
 
-function createPaymentRecord({ userId, provider, providerPaymentId = "" }) {
+function createPaymentRecord({ userId, provider, providerPaymentId = "", amountNok = VIP_PRICE_NOK, plan = "vip" }) {
   const database = openDatabase();
   const payment = {
     id: randomUUID(),
     userId,
     provider,
     providerPaymentId,
-    amountNok: VIP_PRICE_NOK,
+    amountNok,
     currency: "NOK",
     status: "pending",
-    plan: "vip",
-    vipDays: VIP_DURATION_DAYS,
+    plan,
+    vipDays: plan === "support" ? 0 : VIP_DURATION_DAYS,
     createdAt: new Date().toISOString()
   };
 
@@ -1715,6 +1741,10 @@ async function completePaymentFromProvider({ provider, providerPaymentId, paymen
     return;
   }
 
+  if (payment.provider !== provider || (payment.provider_payment_id && payment.provider_payment_id !== providerPaymentId)) {
+    throw new Error("Payment provider mismatch.");
+  }
+
   if (userId && payment.user_id !== userId) {
     throw new Error("Payment user mismatch.");
   }
@@ -1751,7 +1781,7 @@ async function completePaymentFromProvider({ provider, providerPaymentId, paymen
         SET plan = 'vpn', status = 'active', device_limit = ?, starts_at = ?, ends_at = ?, updated_at = ?
         WHERE user_id = ?
       `).run(VPN_DEVICE_LIMIT, paidAt, vpnEnd, paidAt, payment.user_id);
-    } else {
+    } else if (payment.plan !== "support") {
       database.prepare("UPDATE users SET vip_plan = ?, vip_until = ? WHERE id = ?")
         .run(payment.plan, vipUntil, payment.user_id);
     }
@@ -2083,13 +2113,13 @@ async function createStripeCheckoutSession(user, payment) {
     "payment_method_types[0]": "card"
   });
 
-  const configuredStripePriceId = payment.plan === "vpn" ? STRIPE_VPN_PRICE_ID : STRIPE_VIP_PRICE_ID;
+  const configuredStripePriceId = payment.plan === "support" ? "" : payment.plan === "vpn" ? STRIPE_VPN_PRICE_ID : STRIPE_VIP_PRICE_ID;
   if (configuredStripePriceId) {
     params.set("line_items[0][price]", configuredStripePriceId);
   } else {
     params.set("line_items[0][price_data][currency]", "nok");
     params.set("line_items[0][price_data][product_data][name]", payment.plan === "vpn" ? VPN_PLAN_NAME : VIP_PLAN_NAME);
-    params.set("line_items[0][price_data][unit_amount]", String((payment.plan === "vpn" ? VPN_PRICE_NOK : VIP_PRICE_NOK) * 100));
+    params.set("line_items[0][price_data][unit_amount]", String(payment.amountNok * 100));
   }
 
   params.set("line_items[0][quantity]", "1");
@@ -2147,7 +2177,7 @@ async function createVippsPayment(user, payment) {
     body: JSON.stringify({
       amount: {
         currency: "NOK",
-        value: (payment.plan === "vpn" ? VPN_PRICE_NOK : VIP_PRICE_NOK) * 100
+        value: payment.amountNok * 100
       },
       paymentMethod: {
         type: "WALLET"
@@ -2172,6 +2202,29 @@ async function createVippsPayment(user, payment) {
   updatePaymentProviderId(payment.id, reference);
   return redirectUrl;
 }
+
+app.get("/api/support/product", (req, res) => {
+  res.json({ amounts: [10, 50, 100, 200, 500, 1000], currency: "NOK",
+    providers: { stripe: Boolean(STRIPE_SECRET_KEY && STRIPE_WEBHOOK_SECRET) } });
+});
+
+app.post("/api/support/payment", requireAuth, writeLimiter, async (req, res) => {
+  const amount = req.body.amountNok;
+  if (!Number.isSafeInteger(amount) || amount < 10 || amount > 10000 || req.body.consent !== true) {
+    return res.status(400).json({ error: "Invalid amount or missing consent." });
+  }
+  if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
+    return res.status(503).json({ error: "Card payments are not configured." });
+  }
+  try {
+    const payment = createPaymentRecord({ userId: req.currentUser.id, provider: "stripe", amountNok: amount, plan: "support" });
+    const url = await createStripeCheckoutSession(req.currentUser, payment);
+    res.status(201).json({ url });
+  } catch (error) {
+    console.error("Support checkout failed:", error.code || error.name);
+    res.status(502).json({ error: "Could not start payment." });
+  }
+});
 
 app.get("/api/vip/product", (req, res) => {
   res.json({
@@ -2653,17 +2706,30 @@ app.get("/api/auth/providers", (req, res) => {
   });
 });
 
-app.get("/auth/google", authLimiter, (req, res) => {
+const googleAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.get("/auth/google", googleAuthLimiter, (req, res) => {
   if (!googleOAuthConfigured) {
     return res.redirect("/account.html?oauth=google_unconfigured");
   }
 
   const state = randomUUID();
   req.session.oauthState = state;
-  res.redirect(createGoogleAuthUrl(state));
+  req.session.save((error) => {
+    if (error) {
+      console.error("Google OAuth state save failed:", error.code || error.name);
+      return res.redirect("/account.html?oauth=session");
+    }
+    res.redirect(createGoogleAuthUrl(state));
+  });
 });
 
-app.get("/auth/google/callback", authLimiter, async (req, res) => {
+app.get("/auth/google/callback", googleAuthLimiter, async (req, res) => {
   try {
     const error = String(req.query.error || "");
     const code = String(req.query.code || "");
@@ -2689,7 +2755,13 @@ app.get("/auth/google/callback", authLimiter, async (req, res) => {
       }
 
       req.session.userId = user.id;
-      res.redirect("/profile.html");
+      req.session.save((saveError) => {
+        if (saveError) {
+          console.error("Google login session save failed:", saveError.code || saveError.name);
+          return res.redirect("/account.html?oauth=session");
+        }
+        res.redirect("/profile.html");
+      });
     });
   } catch (error) {
     console.error("Google OAuth failed:", error);
@@ -2847,7 +2919,13 @@ app.post("/api/login", authLimiter, async (req, res) => {
     }
 
     req.session.userId = user.id;
-    res.json({ user: publicUser(user) });
+    req.session.save((saveError) => {
+      if (saveError) {
+        console.error("Password login session save failed:", saveError.code || saveError.name);
+        return res.status(503).json({ error: "Kunne ikke lagre innloggingen. Prøv igjen senere." });
+      }
+      res.json({ user: publicUser(user) });
+    });
   });
 });
 
@@ -2881,6 +2959,10 @@ function ensureVpnSubscription(userId) {
     subscription = database.prepare("SELECT * FROM vpn_subscriptions WHERE id = ?").get(id);
   }
 
+  if (subscription.device_limit !== VPN_DEVICE_LIMIT) {
+    database.prepare("UPDATE vpn_subscriptions SET device_limit = ? WHERE id = ?").run(VPN_DEVICE_LIMIT, subscription.id);
+    subscription.device_limit = VPN_DEVICE_LIMIT;
+  }
   return subscription;
 }
 
