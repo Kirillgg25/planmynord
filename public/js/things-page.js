@@ -1,6 +1,69 @@
 import { getCurrentUser, updateAuthNav } from "./auth.js?v=reliability-1";
 import { getPlaceLabel, placeGroups } from "./data.js";
 import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=author-1";
+// Guide copy is translated separately from place IDs, map queries and URLs.
+const phrases = {
+  'Søk etter by': ['Search cities','Поиск города'],
+  'Antall dager': ['Number of days','Количество дней'], 'Startdato': ['Start date','Дата начала'],
+  'Budsjett': ['Budget','Бюджет'], 'Rimelig': ['Budget-friendly','Экономный'], 'Middels': ['Moderate','Средний'], 'Komfortabelt': ['Comfortable','Комфортный'],
+  'Jeg har bil': ['I have a car','У меня есть машина'], 'Interesser': ['Interests','Интересы'],
+  'Historie': ['History','История'], 'Natur': ['Nature','Природа'], 'Mat': ['Food','Еда'], 'Familie': ['Family','Семья'], 'Uteliv': ['Nightlife','Ночная жизнь'],
+  'Legg denne byen til reisen': ['Add this city to the trip','Добавить город в поездку'],
+  'Populære byer': ['Popular cities','Популярные города'], 'Andre byer': ['Other cities','Другие города'],
+  'Tilpass turen': ['Customize your trip','Настройки поездки'], 'Plan dag for dag': ['Day-by-day plan','План по дням'],
+  'Velg steder': ['Choose places','Выбери места'], 'Steder som passer interessene dine': ['Places matching your interests','Места по твоим интересам'],
+  'Utenfor valgt by': ['Outside the selected city','За пределами выбранного города'],
+  'Avstand': ['Distance','Расстояние'], 'Tid': ['Time','Время'], 'Pris': ['Price','Стоимость'], 'Passer i regn': ['Suitable in rain','Подходит в дождь'],
+  'Vis på kartet': ['Show on map','Показать на карте'], 'Lagt til ✓': ['Added ✓','Добавлено ✓'], 'Legg til i ruten': ['Add to route','Добавить в маршрут'], 'Offisiell kilde': ['Official source','Официальный источник'],
+  'Gratis': ['Free','Бесплатно'], 'Gratis ute': ['Free outdoors','Снаружи бесплатно'], 'Billett': ['Ticket required','Платный вход'], 'Billett inne': ['Ticket for indoor areas','Вход внутрь платный'], 'Transport': ['Transport costs','Расходы на транспорт'], 'Sjekk sesong': ['Check seasonal availability','Уточни сезон работы'],
+  'Ja': ['Yes','Да'], 'Nei': ['No','Нет'], 'Delvis': ['Partly','Частично'],
+  'Tilpasses underveis': ['Adjust as you go','Зависит от выбранного пути'], 'heldag': ['Full day','Весь день'],
+  'Lunsj': ['Lunch','Обед'], 'Lunsj i sentrum': ['Lunch in the city centre','Обед в центре'], 'Tid til egne valg': ['Time for your own plans','Время для своих планов'], 'Rolig avslutning': ['A relaxed finish','Спокойное завершение дня'],
+  'To rolige bydager der de fleste stoppene bindes sammen til fots eller med kort kollektivtur.': ['Two relaxed city days, mostly on foot with short public transport journeys.','Два спокойных дня в городе: между остановками можно ходить пешком или недолго ехать на общественном транспорте.'],
+  'Bjørvika og havnepromenaden': ['Bjørvika and the waterfront','Бьёрвика и набережная'], 'Parker og vestkanten': ['Parks and the west side','Парки и западная часть города'],
+  'Frokost i Bjørvika': ['Breakfast in Bjørvika','Завтрак в Бьёрвике'], 'Operahuset – gå på taket': ['Opera House roof walk','Прогулка по крыше Оперного театра'], 'Lunsj ved Barcode': ['Lunch near Barcode','Обед у квартала Barcode'], 'MUNCH eller Akershus festning': ['MUNCH or Akershus Fortress','Музей MUNCH или крепость Акерсхус'], 'Havnepromenaden til Aker Brygge': ['Waterfront walk to Aker Brygge','По набережной до Акер-Брюгге'], 'Lunsj på Majorstuen': ['Lunch in Majorstuen','Обед в Майорстюэне'], 'Frogner eller Bygdøy': ['Frogner or Bygdøy','Фрогнер или Бюгдёй'], 'Kaffe i sentrum': ['Coffee in the city centre','Кофе в центре'],
+  'Arkitektur, fjordutsikt og en gratis tur på taket.': ['Architecture, fjord views and a free rooftop walk.','Архитектура, виды на фьорд и бесплатная прогулка по крыше.'], 'Kunstmuseum i Bjørvika; et godt valg når det regner.': ['An art museum in Bjørvika, ideal for a rainy day.','Художественный музей в Бьёрвике, хороший выбор в дождь.'], 'Stor skulpturpark som er åpen hele døgnet.': ['A large sculpture park open around the clock.','Большой парк скульптур, открытый круглосуточно.'],
+  'En kompakt plan rundt Bryggen, havna og utsikten fra Fløyen, med et innendørs alternativ ved regn.': ['A compact route around Bryggen, the harbour and Fløyen, with an indoor option for rain.','Компактный маршрут по Брюггену, гавани и смотровым площадкам Флёйена с вариантом на случай дождя.'],
+  'Bryggen og Fløyen': ['Bryggen and Fløyen','Брюгген и Флёйен'], 'KODE og Nordnes': ['KODE and Nordnes','KODE и Норднес'], 'Frokost ved Vågen': ['Breakfast by Vågen','Завтрак у гавани Воген'], 'Bryggen og de smale passasjene': ['Bryggen and its narrow passages','Брюгген и его узкие проходы'], 'Fløibanen og tur på Fløyen': ['Fløibanen and a walk on Fløyen','Фуникулёр Fløibanen и прогулка по Флёйену'], 'Tilbake til sentrum': ['Return to the city centre','Возвращение в центр'], 'KODE kunstmuseer': ['KODE art museums','Художественные музеи KODE'], 'Lunsj ved Lille Lungegårdsvann': ['Lunch by Lille Lungegårdsvann','Обед у озера Лилле-Лунгегордсванн'], 'Gå mot Nordnes': ['Walk towards Nordnes','Прогулка к Норднесу'], 'Kaffe ved Vågen': ['Coffee by Vågen','Кофе у гавани Воген'],
+  'Det historiske havnekvartalet og Bergens mest særpregede byrom.': ['The historic harbour district, one of Bergen’s most distinctive areas.','Исторический портовый квартал, одно из самых характерных мест Бергена.'], 'Rask vei opp til utsikt og korte turstier over byen.': ['A quick ride up to viewpoints and short trails above the city.','Быстрый подъём к смотровым площадкам и коротким тропам над городом.'], 'Kunst, design og komponisthjem; egner seg særlig på regnværsdager.': ['Art, design and composers’ homes, particularly good on rainy days.','Искусство, дизайн и дома композиторов; особенно хорошо подходят для дождливых дней.'],
+  'Sentrum kan oppleves til fots. Fjellheisen og Ishavskatedralen krever buss eller en lengre spasertur over brua.': ['Explore the centre on foot. Fjellheisen and the Arctic Cathedral need a bus ride or a longer walk across the bridge.','Центр удобно исследовать пешком. До Fjellheisen и Арктического собора нужен автобус или более долгая прогулка через мост.'],
+  'Sentrum og polarhistorie': ['City centre and polar history','Центр и полярная история'], 'Tromsdalen og utsikten': ['Tromsdalen and the views','Тромсдален и панорамные виды'], 'Lunsj i Storgata': ['Lunch on Storgata','Обед на Сторгате'], 'Havnepromenaden': ['Waterfront promenade','Набережная'], 'Middag i sentrum': ['Dinner in the centre','Ужин в центре'], 'Buss til Ishavskatedralen': ['Bus to the Arctic Cathedral','Автобус до Арктического собора'], 'Retur til sentrum': ['Return to the centre','Возвращение в центр'],
+  'Arktisk opplevelsessenter og akvarium, godt egnet for familier og regn.': ['An Arctic visitor centre and aquarium, suitable for families and rainy days.','Арктический познавательный центр и аквариум: для семей и дождливых дней.'], 'Kompakt museum om ekspedisjoner, fangst og livet i Arktis.': ['A compact museum about expeditions, hunting and Arctic life.','Небольшой музей об экспедициях, промысле и жизни в Арктике.'], 'Taubane til Storsteinen med vid utsikt over Tromsø og fjellene.': ['Cable car to Storsteinen with sweeping views of Tromsø and the mountains.','Канатная дорога на Сторстейнен с панорамой Тромсё и гор.'],
+  'Første dag holder seg i sentrum. Preikestolen er en egen heldagstur utenfor Stavanger og krever værforbehold.': ['Spend day one in the centre. Preikestolen is a separate full-day excursion outside Stavanger, weather permitting.','Первый день проходит в центре. Прекестулен — отдельная поездка на весь день за пределы Ставангера, если позволит погода.'],
+  'Gamle Stavanger og Vågen': ['Old Stavanger and Vågen','Старый Ставангер и Воген'], 'Utenfor byen – sjekk buss/ferje og vær før avreise.': ['Outside the city: check buses, ferries and weather before departure.','За пределами города: перед выездом проверь автобусы, паромы и погоду.'], 'Lunsj ved Vågen': ['Lunch by Vågen','Обед у гавани Воген'], 'Valbergtårnet og havna': ['Valbergtårnet and the harbour','Башня Вальберг и гавань'], 'Avreise fra Stavanger': ['Depart from Stavanger','Выезд из Ставангера'], 'Start fotturen': ['Start the hike','Начало пешего похода'], 'Retur fra startpunktet': ['Return from the trailhead','Отъезд от начала тропы'], 'Tilbake i Stavanger': ['Back in Stavanger','Возвращение в Ставангер'],
+  'Hvite trehus og små gater vest for Vågen.': ['White wooden houses and small streets west of Vågen.','Белые деревянные дома и узкие улицы к западу от гавани Воген.'], 'Moderne museum om energi, teknologi og norsk oljehistorie.': ['A modern museum about energy, technology and Norway’s oil history.','Современный музей об энергетике, технологиях и истории нефтяной отрасли Норвегии.'], 'Fjelltur utenfor byen; krevende ved dårlig vær og ikke en sentrumsattraksjon.': ['A mountain hike outside the city, demanding in poor weather and not a city-centre attraction.','Горный поход за пределами города: в плохую погоду сложный, это не достопримечательность центра.'],
+  'Den historiske kjernen er kompakt: Nidarosdomen, Gamle Bybro og Bakklandet fungerer godt som én sammenhengende tur.': ['The compact historic centre links Nidaros Cathedral, the Old Town Bridge and Bakklandet in one walk.','Компактный исторический центр: Нидаросский собор, Старый мост и Баккландет удобно объединить в одну прогулку.'], 'Det historiske Trondheim': ['Historic Trondheim','Исторический Тронхейм'], 'Havna og nyere historie': ['The harbour and recent history','Гавань и новая история'], 'Lunsj i Bakklandet': ['Lunch in Bakklandet','Обед в Баккландете'], 'Lunsj på Solsiden': ['Lunch at Solsiden','Обед в Сольсидене'],
+  'Norges nasjonalhelligdom og byens viktigste historiske stopp.': ['Norway’s national sanctuary and a key historic stop in the city.','Национальная святыня Норвегии и важнейшая историческая достопримечательность города.'], 'Trehus, små kafeer og en rolig gate langs Nidelva.': ['Wooden houses, small cafés and a peaceful street along the Nidelva.','Деревянные дома, небольшие кафе и спокойная улица вдоль Нидэльвы.'], 'Interaktivt museum for norsk populærmusikk.': ['An interactive museum of Norwegian popular music.','Интерактивный музей норвежской популярной музыки.'],
+  'Første dag foregår i Sarpsborg. Dag to er tydelig merket som en utflukt til nabobyen Fredrikstad.': ['Day one is in Sarpsborg; day two is an excursion to neighbouring Fredrikstad.','Первый день — в Сарпсборге, второй — поездка в соседний Фредрикстад.'], 'Sentrum i Sarpsborg': ['Sarpsborg city centre','Центр Сарпсборга'], 'Utflukt til Gamlebyen i Fredrikstad': ['Excursion to Fredrikstad’s Old Town','Поездка в Старый город Фредрикстада'], 'Frokost i sentrum': ['Breakfast in the centre','Завтрак в центре'], 'Utenfor Sarpsborg – omtrent 20 minutter med tog til Fredrikstad, deretter buss eller gange.': ['Outside Sarpsborg: about 20 minutes by train to Fredrikstad, then a bus or walk.','За пределами Сарпсборга: около 20 минут на поезде до Фредрикстада, затем автобус или пешком.'], 'Tog fra Sarpsborg': ['Train from Sarpsborg','Поезд из Сарпсборга'], 'Lunsj i Gamlebyen': ['Lunch in the Old Town','Обед в Старом городе'], 'Gratis byferge til Isegran': ['Free city ferry to Isegran','Бесплатный городской паром до Исеграна'], 'Retur til Sarpsborg': ['Return to Sarpsborg','Возвращение в Сарпсборг'],
+  'Bymuseum med middelalderruiner og historie fra Østfold.': ['A city museum with medieval ruins and Østfold history.','Городской музей со средневековыми руинами и историей Эстфолла.'], 'Grønn park nær sentrum, egnet for en rolig pause eller piknik.': ['A green park near the centre for a quiet break or picnic.','Зелёный парк рядом с центром для спокойного отдыха или пикника.'], 'Festningsby i nabobyen Fredrikstad – dette er en utflukt, ikke et sted i Sarpsborg.': ['A fortified town in neighbouring Fredrikstad: an excursion, not a location in Sarpsborg.','Город-крепость в соседнем Фредрикстаде: это отдельная поездка, а не место в Сарпсборге.'],
+  'En byplan rundt Gamlebyen, elva og den gratis byferga. De sentrale stoppene kan kombineres uten bil.': ['Explore the Old Town, river and free city ferry. The central stops do not require a car.','Маршрут по Старому городу, реке и бесплатному городскому парому. Основные остановки можно посетить без машины.'], 'Gamlebyen og Isegran': ['Old Town and Isegran','Старый город и Исегран'], 'Elva og sentrum': ['River and city centre','Река и центр города'], 'Gratis byferge': ['Free city ferry','Бесплатный городской паром'], 'Bryggepromenaden': ['Quayside promenade','Прогулка по набережной'], 'Ferge til sentrum': ['Ferry to the centre','Паром до центра'], 'Kråkerøy og elvepromenaden': ['Kråkerøy and the riverside','Крокерёй и речная набережная'],
+  'En levende festningsby med voller, gallerier og små serveringssteder.': ['A lively fortified town with ramparts, galleries and small eateries.','Живой город-крепость с валами, галереями и небольшими кафе.'], 'Historisk øy med maritime miljøer, nådd med gratis byferge.': ['A historic island with maritime heritage, reached by the free city ferry.','Исторический остров с морским наследием, до которого идёт бесплатный городской паром.'], 'Lokalhistorie i Gamlebyen og et godt stopp i ustabilt vær.': ['Local history in the Old Town, a good stop in changeable weather.','Местная история в Старом городе, хороший вариант при переменчивой погоде.'],
+  'utenfor Stavanger': ['outside Stavanger','за пределами Ставангера'], 'kort fergetur': ['short ferry ride','короткая поездка на пароме'], 'i Gamlebyen': ['in the Old Town','в Старом городе'],
+  'En konkret plan med tider, transport og kostnader.': ['A plan with times, transport and costs.','План со временем посещения, транспортом и расходами.']
+};
+
+function guideText(text, language) {
+  if (language === 'no' || typeof text !== 'string') return text;
+  const column = language === 'ru' ? 1 : 0;
+  if (phrases[text]) return phrases[text][column];
+  // Only translate units in numeric metadata; proper names remain searchable.
+  if (/^(ca\. )?\d/.test(text)) {
+    text = text.replace(/(\d) t\b/g, language === 'ru' ? '$1 ч' : '$1 h')
+      .replace(/(\d) m\b/g, language === 'ru' ? '$1 м' : '$1 m');
+    const replacements = language === 'ru'
+      ? [['ca. ','около '],['km','км'],[' min',' мин'],[' timer',' ч'],['til fots','пешком'],['fottur','пешком'],['trikk','трамвай'],['buss','автобус'],['ferge','паром'],['fra sentrum','от центра'],['fra stasjonen','от вокзала'],['med tog','на поезде']]
+      : [['ca. ','approx. '],[' timer',' hours'],['til fots','on foot'],['fottur','hike'],['trikk','tram'],['buss','bus'],['ferge','ferry'],['fra sentrum','from the centre'],['fra stasjonen','from the station'],['med tog','by train']];
+    // Longer phrases must be replaced before their shorter unit prefixes.
+    return replacements.sort((a,b)=>b[0].length-a[0].length).reduce((s,[from,to])=>s.replaceAll(from,to),text);
+  }
+  return text;
+}
+
+function dayCount(days, language) {
+  const category = new Intl.PluralRules(language === 'no' ? 'nb' : language).select(Number(days));
+  const forms = language === 'ru' ? {one:'день',few:'дня',many:'дней',other:'дня'} : language === 'no' ? {one:'dag',other:'dager'} : {one:'day',other:'days'};
+  return `${days} ${forms[category] || forms.other}`;
+}
 import { storePlannerDraft } from "./planner-transfer.js";
 import { MAPBOX_ACCESS_TOKEN, getPlaceCenter } from "./mapbox-config.js";
 import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
@@ -762,6 +825,23 @@ let miniMap = null;
 let miniMapMarkers = [];
 let activeCity = "Oslo";
 
+function guideLabel(text) { return guideText(text, getLanguage()); }
+
+function syncGuideControls() {
+  document.querySelectorAll("#thingsDaysLabel, #thingsDateLabel, #thingsBudgetLabel, #thingsBudget option, .things-check span, .things-interests legend, .things-interests label span, #thingsAddToTrip").forEach(el => {
+    el.dataset.guideOriginal ||= el.textContent;
+    el.textContent = guideLabel(el.dataset.guideOriginal);
+  });
+  citySearch.placeholder = guideLabel("Søk etter by");
+  citySearch.setAttribute("aria-label", citySearch.placeholder);
+  document.querySelector(".things-trip-controls").setAttribute("aria-label", guideLabel("Tilpass turen"));
+  Array.from(daysInput.options).forEach(option => { option.textContent = dayCount(option.value, getLanguage()); });
+  citySelect.querySelectorAll("optgroup").forEach(group => {
+    group.dataset.guideOriginal ||= group.label;
+    group.label = guideLabel(group.dataset.guideOriginal);
+  });
+}
+
 function localText(key, values = {}) {
   const language = getLanguage();
   const template = listTranslations[language]?.[key] || listTranslations.en[key] || key;
@@ -850,7 +930,8 @@ function renderCityPlan(city) {
   const insight = getCityInsightCopy(profile.type);
   activeCity = city;
   cityTitle.textContent = getPlaceLabel(city);
-  daysBadge.textContent = localText("days", { days: profile.days });
+  daysBadge.textContent = dayCount(profile.days, getLanguage());
+  planSummary.textContent = guideLabel("En konkret plan med tider, transport og kostnader.");
   content.innerHTML = `
     ${renderInfoCard(localText("morning"), copy.morning)}
     ${renderInfoCard(localText("day"), copy.day)}
@@ -874,14 +955,14 @@ function renderDetailedCityPlan(city, guide) {
   const planDays = Array.from({ length: days }, (_, index) => guide.days[index] || createFlexibleDay(city, orderedPlaces, index));
   activeCity = city;
   cityTitle.textContent = getPlaceLabel(city);
-  daysBadge.textContent = `${days} ${days === 1 ? "dag" : "dager"}`;
-  planSummary.textContent = guide.intro;
+  daysBadge.textContent = dayCount(days, getLanguage());
+  planSummary.textContent = guideLabel(guide.intro);
   content.innerHTML = `
     <section class="things-itinerary" aria-label="Plan dag for dag">
       ${planDays.map((day, index) => renderItineraryDay(day, index)).join("")}
     </section>
     <section class="things-place-section">
-      <div class="things-section-heading"><p class="things-section-label">Velg steder</p><h3>Steder som passer interessene dine</h3></div>
+      <div class="things-section-heading"><p class="things-section-label">${guideLabel("Velg steder")}</p><h3>${guideLabel("Steder som passer interessene dine")}</h3></div>
       <div class="things-place-grid">${orderedPlaces.map(renderPlaceCard).join("")}</div>
     </section>
   `;
@@ -900,7 +981,7 @@ function scorePlace(place, selectedInterests) {
 function createFlexibleDay(city, places, index) {
   const place = places[index % places.length];
   return {
-    title: `Fleksibel dag i ${getPlaceLabel(city)}`,
+    title: `${getLanguage() === "ru" ? "Свободный день:" : getLanguage() === "en" ? "Flexible day in" : "Fleksibel dag i"} ${getPlaceLabel(city)}`,
     distance: "Tilpasses underveis",
     duration: "4–6 timer",
     stops: [["10:00", place.name], ["12:30", "Lunsj i sentrum"], ["14:00", "Tid til egne valg"], ["16:00", "Rolig avslutning"]]
@@ -910,10 +991,10 @@ function createFlexibleDay(city, places, index) {
 function renderItineraryDay(day, index) {
   return `
     <article class="things-day-card">
-      <div class="things-day-top"><div><span>Dag ${index + 1}</span><h3>${escapeHtml(day.title)}</h3></div></div>
-      ${day.outside ? `<p class="things-outside-note"><strong>Utenfor valgt by:</strong> ${escapeHtml(day.outside)}</p>` : ""}
-      <ol class="things-timeline">${day.stops.map(([time, title]) => `<li><time>${escapeHtml(time)}</time><span>${escapeHtml(title)}</span></li>`).join("")}</ol>
-      <div class="things-day-meta"><span>↗ ${escapeHtml(day.distance)}</span><span>◷ ${escapeHtml(day.duration)}</span></div>
+      <div class="things-day-top"><div><span>${getLanguage() === "ru" ? "День" : getLanguage() === "en" ? "Day" : "Dag"} ${index + 1}</span><h3>${escapeHtml(guideLabel(day.title))}</h3></div></div>
+      ${day.outside ? `<p class="things-outside-note"><strong>${guideLabel("Utenfor valgt by")}:</strong> ${escapeHtml(guideLabel(day.outside))}</p>` : ""}
+      <ol class="things-timeline">${day.stops.map(([time, title]) => `<li><time>${escapeHtml(time)}</time><span>${escapeHtml(guideLabel(title))}</span></li>`).join("")}</ol>
+      <div class="things-day-meta"><span>↗ ${escapeHtml(guideLabel(day.distance))}</span><span>◷ ${escapeHtml(guideLabel(day.duration))}</span></div>
     </article>`;
 }
 
@@ -924,13 +1005,13 @@ function renderPlaceCard(place) {
     <article class="things-place-card${place.outside ? " is-outside" : ""}">
       <div class="things-place-visual" aria-hidden="true"><span>${place.tags.includes("nature") ? "⌁" : "⌂"}</span></div>
       <div class="things-place-body">
-        ${place.outside ? '<span class="things-location-tag">Utenfor valgt by</span>' : ""}
-        <h4>${escapeHtml(place.name)}</h4><p>${escapeHtml(place.description)}</p>
-        <dl><div><dt>Avstand</dt><dd>${escapeHtml(place.distance)}</dd></div><div><dt>Tid</dt><dd>${escapeHtml(place.duration)}</dd></div><div><dt>Pris</dt><dd>${escapeHtml(place.price)}</dd></div><div><dt>Passer i regn</dt><dd>${escapeHtml(place.rain)}</dd></div></dl>
+        ${place.outside ? `<span class="things-location-tag">${guideLabel("Utenfor valgt by")}</span>` : ""}
+        <h4>${escapeHtml(place.name)}</h4><p>${escapeHtml(guideLabel(place.description))}</p>
+        <dl><div><dt>${guideLabel("Avstand")}</dt><dd>${escapeHtml(guideLabel(place.distance))}</dd></div><div><dt>${guideLabel("Tid")}</dt><dd>${escapeHtml(guideLabel(place.duration))}</dd></div><div><dt>${guideLabel("Pris")}</dt><dd>${escapeHtml(guideLabel(place.price))}</dd></div><div><dt>${guideLabel("Passer i regn")}</dt><dd>${escapeHtml(guideLabel(place.rain))}</dd></div></dl>
         <div class="things-place-actions">
-          <button type="button" class="secondary-btn" data-route-place="${escapeHtml(place.query)}" data-route-type="place" data-route-city="${escapeHtml(place.routeCity || activeCity)}">Vis på kartet</button>
-          <button type="button" class="primary-btn" data-add-place="${escapeHtml(place.name)}">${added ? "Lagt til ✓" : "Legg til i ruten"}</button>
-          <a href="${escapeHtml(place.source)}" target="_blank" rel="noopener">Offisiell kilde ↗</a>
+          <button type="button" class="secondary-btn" data-route-place="${escapeHtml(place.query)}" data-route-type="place" data-route-city="${escapeHtml(place.routeCity || activeCity)}">${guideLabel("Vis på kartet")}</button>
+          <button type="button" class="primary-btn" data-add-place="${escapeHtml(place.name)}">${guideLabel(added ? "Lagt til ✓" : "Legg til i ruten")}</button>
+          <a href="${escapeHtml(place.source)}" target="_blank" rel="noopener">${guideLabel("Offisiell kilde")} ↗</a>
         </div>
       </div>
     </article>`;
@@ -979,7 +1060,7 @@ function renderMiniMap(city) {
 function renderInfoCard(title, text) {
   return `
     <article class="things-info-card">
-      <h3>${escapeHtml(title)}</h3>
+      <h3>${escapeHtml(guideLabel(title))}</h3>
       <p>${escapeHtml(text)}</p>
     </article>
   `;
@@ -988,7 +1069,7 @@ function renderInfoCard(title, text) {
 function renderListCard(title, items, routeType = "") {
   return `
     <article class="things-info-card">
-      <h3>${escapeHtml(title)}</h3>
+      <h3>${escapeHtml(guideLabel(title))}</h3>
       <ul>
         ${items.map((item) => renderListItem(item, routeType)).join("")}
       </ul>
@@ -1417,6 +1498,7 @@ function formatDay(value) {
 }
 
 async function renderPage() {
+  syncGuideControls();
   const city = citySelect.value || "Oslo";
   document.title = t("things.pageTitle");
   renderCityPlan(city);

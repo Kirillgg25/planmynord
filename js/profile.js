@@ -22,7 +22,7 @@ import {
   updateAuthNav
 } from "./auth.js?v=ticket-wallet-1";
 import { formatBudgetText, initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { applyTranslations, initLanguageSelector, t } from "./i18n.js?v=author-1";
+import { applyTranslations, initLanguageSelector, getLanguage, t } from "./i18n.js?v=author-1";
 import { routeToPlannerDraft, storePlannerDraft } from "./planner-transfer.js";
 import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
 
@@ -80,6 +80,19 @@ function showMessage(message, type = "success") {
 function clearMessage() {
   profileMessage.textContent = "";
   profileMessage.className = "auth-message";
+}
+
+function renderVpnOffer() {
+  const labels = {
+    ru: ['99 NOK / 30 дней', 'До 5 устройств. Разовая оплата, без автопродления.', 'Оплата пока недоступна', 'Ссылка для ручного подключения появится после настройки 3x-ui. VPN пока недоступен.'],
+    en: ['99 NOK / 30 days', 'Up to 5 devices. One-time payment, no automatic renewal.', 'Payment not available yet', 'A manual connection link will appear after 3x-ui is configured. VPN is not available yet.'],
+    no: ['99 NOK / 30 dager', 'Opptil 5 enheter. Engangsbetaling, ingen automatisk fornyelse.', 'Betaling er ikke tilgjengelig ennå', 'En lenke for manuell tilkobling blir tilgjengelig når 3x-ui er konfigurert. VPN er ikke tilgjengelig ennå.']
+  };
+  const text = labels[getLanguage()] || labels.en;
+  ['vpnOfferPrice', 'vpnOfferNote', 'vpnBuy', 'vpnConnectionNote'].forEach((id, index) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = text[index];
+  });
 }
 
 function vpnPlatformLabel(platform) {
@@ -675,6 +688,7 @@ buyVpnCardBtn.addEventListener("click", () => startVpnPayment("card"));
 buyVpnVippsBtn.addEventListener("click", () => startVpnPayment("vipps"));
 
 document.addEventListener("languagechange", async () => {
+  renderVpnOffer();
   applyTranslations();
   renderLegalConsent();
   renderVipProductDescription();
@@ -688,6 +702,7 @@ document.addEventListener("languagechange", async () => {
   }
 });
 
+renderVpnOffer();
 initCurrencySelector();
 initLanguageSelector();
 applyTranslations();

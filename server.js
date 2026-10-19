@@ -10,7 +10,7 @@ const fs = require("fs/promises");
 const https = require("https");
 const path = require("path");
 const nodemailer = require("nodemailer");
-const { createHmac, randomUUID, timingSafeEqual } = require("crypto");
+const { createHmac, createHash, randomUUID, timingSafeEqual } = require("crypto");
 const { Provider: OidcProvider } = require("oidc-provider");
 const { scheduleDailyR2Backup } = require("./lib/r2-backup");
 const { preparePublicSite, publicSiteMiddleware } = require("./lib/public-site");
@@ -67,9 +67,13 @@ const VIP_PRICE_NOK = Math.max(Number(process.env.SUPPORT_PRICE_NOK || process.e
 const VIP_DURATION_DAYS = Math.max(Number(process.env.VIP_DURATION_DAYS) || 30, 1);
 const VPN_PLAN_NAME = process.env.VPN_PLAN_NAME || "PlanMyNord VPN";
 const VPN_PRICE_NOK = 99;
-const VPN_DURATION_DAYS = 30;
+const VPN_DURATION_DAYS = Math.max(Number(process.env.VPN_DURATION_DAYS) || 30, 1);
 const VPN_DEVICE_LIMIT = 5;
-const VPN_PROFILE_DELIVERY_ENABLED = false;
+const XUI_BASE_URL = String(process.env.XUI_BASE_URL || "").trim().replace(/\/+$/, "");
+const XUI_API_TOKEN = String(process.env.XUI_API_TOKEN || "").trim();
+const XUI_INBOUND_ID = Number(process.env.XUI_INBOUND_ID);
+const VPN_SUBSCRIPTION_BASE_URL = String(process.env.VPN_SUBSCRIPTION_BASE_URL || "").trim();
+const VPN_PROFILE_DELIVERY_ENABLED = Boolean(XUI_BASE_URL && XUI_API_TOKEN && Number.isSafeInteger(XUI_INBOUND_ID) && XUI_INBOUND_ID > 0 && VPN_SUBSCRIPTION_BASE_URL);
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 const STRIPE_VIP_PRICE_ID = process.env.STRIPE_VIP_PRICE_ID || "";
@@ -594,6 +598,19 @@ function openDatabase() {
       last_seen_at TEXT NOT NULL DEFAULT '',
       revoked_at TEXT NOT NULL DEFAULT '',
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS vpn_trial_profiles (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      device_id TEXT NOT NULL,
+      client_email TEXT NOT NULL UNIQUE,
+      sub_id TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL DEFAULT 'active',
+      ends_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (device_id) REFERENCES vpn_devices(id) ON DELETE CASCADE
     );
 
     CREATE TRIGGER IF NOT EXISTS create_vpn_subscription_after_user_insert
@@ -2996,18 +3013,74 @@ app.get("/api/vpn/account", requireAuth, (req, res) => {
     WHERE user_id = ? AND status = 'active'
     ORDER BY datetime(created_at) DESC
   `).all(req.currentUser.id).map(publicVpnDevice);
+  const trial = database.prepare("SELECT status, ends_at FROM vpn_trial_profiles WHERE user_id = ?").get(req.currentUser.id);
+  const trialProfile = trial ? { active: trial.status === "active" && Date.parse(trial.ends_at) > Date.now(), endsAt: trial.ends_at } : null;
 
-  res.json({ subscription: publicVpnSubscription(subscription), devices });
+  res.json({ subscription: publicVpnSubscription(subscription), devices, trialProfile });
 });
 
-app.post("/api/vpn/client-token", requireAuth, writeLimiter, (req, res) => {
+async function callXuiApi(endpoint, { method = "GET", body } = {}) {
+  if (!VPN_PROFILE_DELIVERY_ENABLED) throw new Error("Выдача VPN-профилей не настроена на сервере.");
+  const base = new URL(XUI_BASE_URL);
+  if (base.protocol !== "https:" && !(base.protocol === "http:" && ["localhost", "127.0.0.1"].includes(base.hostname))) throw new Error("Панель VPN должна использовать HTTPS.");
+  const url = new URL(`panel/api/${endpoint.replace(/^\/+/, "")}`, base.href.endsWith("/") ? base : `${base.href}/`);
+  const response = await fetch(url, { method, headers: { Authorization: `Bearer ${XUI_API_TOKEN}`, ...(body ? { "Content-Type": "application/json" } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(15000) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.success !== true) throw new Error(data.msg || `Панель VPN ответила HTTP ${response.status}.`);
+  return data;
+}
+
+function vpnSubscriptionUrl(subId) {
+  const url = new URL(VPN_SUBSCRIPTION_BASE_URL);
+  if (url.protocol !== "https:") throw new Error("Ссылка VPN-подписки должна использовать HTTPS.");
+  const prefix = url.pathname.replace(/\/+$/, "");
+  // Keep custom multi-segment subscription paths intact and append only the
+  // generated client subId. A bare origin uses the default /sub/<subId> path.
+  url.pathname = prefix
+    ? `${prefix}/${encodeURIComponent(subId)}`
+    : `/sub/${encodeURIComponent(subId)}`;
+  return url.toString();
+}
+
+app.post("/api/vpn/client-token", requireAuth, writeLimiter, async (req, res) => {
   const deviceId = String(req.body.deviceId || "").trim();
   if (!deviceId) return res.status(400).json({ error: "Устройство не указано." });
-  const device = openDatabase().prepare(`
-    SELECT id FROM vpn_devices WHERE id = ? AND user_id = ? AND status = 'active'
-  `).get(deviceId, req.currentUser.id);
+  const database = openDatabase();
+  const device = database.prepare(`SELECT id FROM vpn_devices WHERE id = ? AND user_id = ? AND status = 'active'`).get(deviceId, req.currentUser.id);
   if (!device) return res.status(404).json({ error: "Активное устройство не найдено." });
-  res.status(503).json({ error: "Для выдачи профилей нужно подключить сервер VPN." });
+  if (!VPN_PROFILE_DELIVERY_ENABLED) return res.status(503).json({ error: "Выдача VPN-профилей не настроена на сервере." });
+  try {
+    const now = new Date();
+    const existing = database.prepare("SELECT * FROM vpn_trial_profiles WHERE user_id = ?").get(req.currentUser.id);
+    if (existing?.status === "active" && Date.parse(existing.ends_at) > now.getTime()) return res.json({ subscriptionUrl: vpnSubscriptionUrl(existing.sub_id), endsAt: existing.ends_at, alreadyActive: true });
+    const id = randomUUID();
+    const subId = randomUUID().replace(/-/g, "");
+    const clientEmail = `pm-${createHash("sha256").update(req.currentUser.id).digest("hex").slice(0, 20)}-${id.slice(0, 8)}@planmynord`;
+    const endsAt = new Date(now.getTime() + VPN_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const inboundResponse = await callXuiApi("inbounds/get/" + XUI_INBOUND_ID);
+    const inbound = inboundResponse.obj;
+    if (!inbound || inbound.enable === false) throw new Error("Выбранный inbound отсутствует или выключен в панели VPN.");
+    let inboundSettings = inbound.settings || {};
+    if (typeof inboundSettings === "string") { try { inboundSettings = JSON.parse(inboundSettings); } catch { inboundSettings = {}; } }
+    const sampleFlow = Array.isArray(inboundSettings.clients) ? inboundSettings.clients.find((client) => client?.flow)?.flow : "";
+    await callXuiApi("clients/add", { method: "POST", body: { client: { email: clientEmail, subId, enable: true, expiryTime: Date.parse(endsAt), totalGB: 0, limitIp: 0, ...(sampleFlow ? { flow: sampleFlow } : {}) }, inboundIds: [XUI_INBOUND_ID] } });
+    database.prepare(`INSERT INTO vpn_trial_profiles (id,user_id,device_id,client_email,sub_id,status,ends_at,created_at) VALUES (?,?,?,?,?,'active',?,?) ON CONFLICT(user_id) DO UPDATE SET device_id=excluded.device_id, client_email=excluded.client_email, sub_id=excluded.sub_id, status='active', ends_at=excluded.ends_at, created_at=excluded.created_at`).run(id, req.currentUser.id, deviceId, clientEmail, subId, endsAt, now.toISOString());
+    res.status(201).json({ subscriptionUrl: vpnSubscriptionUrl(subId), endsAt });
+  } catch (error) { console.error("VPN profile provisioning failed:", error.message); res.status(502).json({ error: error.message || "Не удалось создать VPN-профиль." }); }
+});
+
+app.post("/api/vpn/client-token/revoke", requireAuth, writeLimiter, async (req, res) => {
+  const deviceId = String(req.body.deviceId || "").trim();
+  if (!deviceId) return res.status(400).json({ error: "Устройство не указано." });
+  const database = openDatabase();
+  const trial = database.prepare("SELECT * FROM vpn_trial_profiles WHERE user_id = ? AND status = 'active'").get(req.currentUser.id);
+  if (!trial) return res.status(404).json({ error: "Активный пробный VPN-профиль не найден." });
+  try {
+    await callXuiApi(`clients/del/${encodeURIComponent(trial.client_email)}`, { method: "POST" });
+    const now = new Date().toISOString();
+    database.prepare("UPDATE vpn_trial_profiles SET status='revoked', ends_at=? WHERE id=?").run(now, trial.id);
+    res.json({ success: true, message: "Пробный VPN-доступ отменён." });
+  } catch (error) { console.error("VPN trial revocation failed:", error.message); res.status(502).json({ error: error.message || "Не удалось отменить VPN-доступ." }); }
 });
 
 app.get("/api/vpn/client-profile", writeLimiter, (req, res) => {
