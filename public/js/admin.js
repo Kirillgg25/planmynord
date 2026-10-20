@@ -130,12 +130,33 @@ function renderPaymentStatus(status) {
   return `<span class="payment-status ${escapeHtml(status)}">${escapeHtml(label)}</span>`;
 }
 
+function vpnText(key) {
+  const copy = {
+    ru: {apply:"Выдать / продлить VPN",revoke:"Отозвать VPN",until:"VPN до",devices:"устройств",inactive:"VPN не выдан",confirm:"Отозвать VPN-доступ?",saved:"VPN-доступ выдан. Подключение 3x-ui ещё не настроено.",revoked:"VPN-доступ отозван.",error:"Не удалось изменить VPN-доступ."},
+    en: {apply:"Grant / extend VPN",revoke:"Revoke VPN",until:"VPN until",devices:"devices",inactive:"No VPN access",confirm:"Revoke VPN access?",saved:"VPN access granted. 3x-ui provisioning is not configured yet.",revoked:"VPN access revoked.",error:"Could not update VPN access."},
+    no: {apply:"Gi / forleng VPN",revoke:"Trekk tilbake VPN",until:"VPN til",devices:"enheter",inactive:"Ingen VPN-tilgang",confirm:"Trekk tilbake VPN-tilgangen?",saved:"VPN-tilgang er gitt. 3x-ui er ikke konfigurert ennå.",revoked:"VPN-tilgang trukket tilbake.",error:"Kunne ikke endre VPN-tilgangen."}
+  };
+  return (copy[getLanguage()] || copy.en)[key];
+}
+
 function renderUserActions(user) {
   const nextRole = user.role === "admin" ? "user" : "admin";
   const roleLabel = user.role === "admin" ? t("admin.removeAdmin") : t("admin.makeAdmin");
 
   return `
     <div class="admin-user-actions">
+      <div class="admin-vip-control">
+        <label>VPN
+          <select data-vpn-days="${escapeHtml(user.id)}" aria-label="VPN">
+            <option value="30">${t("admin.days30")}</option>
+            <option value="90">${t("admin.days90")}</option>
+            <option value="365">${t("admin.year1")}</option>
+            <option value="0">${vpnText("revoke")}</option>
+          </select>
+        </label>
+        <button type="button" class="admin-small-button" data-grant-vpn="${escapeHtml(user.id)}">${vpnText("apply")}</button>
+      </div>
+      <span>${user.vpn?.active ? vpnText("until") + " " + escapeHtml(formatDate(user.vpn.until)) + " · 5 " + vpnText("devices") : vpnText("inactive")}</span>
       <button type="button" class="admin-small-button" data-user-role="${escapeHtml(user.id)}" data-role="${nextRole}">
         ${roleLabel}
       </button>
@@ -420,6 +441,28 @@ adminUsers.addEventListener("click", async (event) => {
 
     showMessage(t("admin.roleUpdated"), "success");
     await loadAdminData({ quiet: true });
+    return;
+  }
+
+  const vpnButton = event.target.closest("[data-grant-vpn]");
+  if (vpnButton) {
+    if (vpnButton.disabled) return;
+    const id = vpnButton.dataset.grantVpn;
+    const select = Array.from(adminUsers.querySelectorAll("[data-vpn-days]")).find(el => el.dataset.vpnDays === id);
+    const days = Number(select?.value);
+    if (days === 0 && !window.confirm(vpnText("confirm"))) return;
+    vpnButton.disabled = true;
+    try {
+      const response = await fetch("/api/admin/users/" + encodeURIComponent(id) + "/vpn", {
+        method: "PATCH", credentials: "same-origin",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ days })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || vpnText("error"));
+      showMessage(vpnText(days ? "saved" : "revoked"), "success");
+      await loadAdminData({ quiet: true });
+    } catch (error) { showMessage(error.message || vpnText("error"), "error"); }
+    finally { vpnButton.disabled = false; }
     return;
   }
 

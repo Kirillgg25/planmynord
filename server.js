@@ -1161,7 +1161,39 @@ async function getHyreCarEstimate() {
 }
 
 function canPreviewVpn(user) {
-  return user?.id === "b22e3c94-63ec-4d85-945f-05ec16aad38a";
+  return user?.id === "b22e3c94-63ec-4d85-945f-05ec16aad38a" || getVpnAccess(user?.id).active;
+}
+
+function getVpnAccess(userId) {
+  const row = userId ? openDatabase().prepare("SELECT * FROM vpn_subscriptions WHERE user_id = ?").get(userId) : null;
+  return {
+    active: Boolean(row && row.plan === "vpn" && row.status === "active" && Date.parse(row.ends_at) > Date.now()),
+    until: row?.ends_at || "",
+    deviceLimit: VPN_DEVICE_LIMIT
+  };
+}
+
+function grantVpnAccess(userId, days) {
+  if (!Number.isInteger(days) || days < 0 || days > 3650) {
+    const error = new Error("VPN duration must be an integer from 0 to 3650 days.");
+    error.status = 400;
+    throw error;
+  }
+  const database = openDatabase();
+  if (!database.prepare("SELECT id FROM users WHERE id = ?").get(userId)) {
+    const error = new Error("User not found.");
+    error.status = 404;
+    throw error;
+  }
+  const subscription = ensureVpnSubscription(userId);
+  const now = Date.now();
+  const currentEnd = subscription.plan === "vpn" && subscription.status === "active" ? Date.parse(subscription.ends_at) : 0;
+  const until = days ? new Date(Math.max(now, currentEnd || 0) + days * 86400000).toISOString() : "";
+  database.prepare(`UPDATE vpn_subscriptions
+    SET plan = 'vpn', status = ?, device_limit = ?, starts_at = ?, ends_at = ?, updated_at = ?
+    WHERE user_id = ?`).run(days ? "active" : "revoked", VPN_DEVICE_LIMIT,
+      subscription.starts_at || new Date(now).toISOString(), until, new Date(now).toISOString(), userId);
+  return getVpnAccess(userId);
 }
 
 function publicUser(user) {
@@ -1188,7 +1220,8 @@ function publicAdminUser(user) {
     createdAt: user.createdAt,
     emailVerified: Boolean(user.emailVerified),
     vip: getVipStatus(user),
-    tripsCount: Array.isArray(user.trips) ? user.trips.length : 0
+    tripsCount: Array.isArray(user.trips) ? user.trips.length : 0,
+    vpn: getVpnAccess(user.id)
   };
 }
 
@@ -3557,6 +3590,17 @@ app.patch("/api/admin/users/:id/role", requireAdmin, writeLimiter, async (req, r
   const updatedUsers = users.map((user) => (user.id === userId ? { ...user, role } : user));
   await saveUsers(updatedUsers);
   res.json({ ok: true });
+});
+
+app.patch("/api/admin/users/:id/vpn", requireAdmin, writeLimiter, (req, res) => {
+  try {
+    const vpn = grantVpnAccess(String(req.params.id), req.body.days);
+    res.json({ ok: true, vpn });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    console.error("Admin VPN grant failed:", error.code || error.name);
+    res.status(500).json({ error: "Could not update VPN access." });
+  }
 });
 
 app.patch("/api/admin/users/:id/vip", requireAdmin, writeLimiter, async (req, res) => {
