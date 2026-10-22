@@ -10,7 +10,7 @@ const fs = require("fs/promises");
 const https = require("https");
 const path = require("path");
 const nodemailer = require("nodemailer");
-const { createHmac, createHash, randomUUID, timingSafeEqual } = require("crypto");
+const { createHmac, createHash, randomBytes, randomUUID, timingSafeEqual } = require("crypto");
 const { Provider: OidcProvider } = require("oidc-provider");
 const { scheduleDailyR2Backup } = require("./lib/r2-backup");
 const { preparePublicSite, publicSiteMiddleware } = require("./lib/public-site");
@@ -91,6 +91,7 @@ const GOOGLE_REDIRECT_URI =
   process.env.GOOGLE_REDIRECT_URI || `${APP_BASE_URL}/auth/google/callback`;
 const GOOGLE_OAUTH_TIMEOUT_MS = 12000;
 const googleOAuthConfigured = Boolean(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
+const desktopAuthHandoffs = new Map();
 const OIDC_ISSUER = process.env.OIDC_ISSUER || `${APP_BASE_URL.replace(/\/$/, "")}/oidc`;
 const OIDC_JWKS = process.env.OIDC_JWKS || "";
 const OIDC_STORAGE_DIR = process.env.OIDC_STORAGE_DIR || "";
@@ -1161,7 +1162,8 @@ async function getHyreCarEstimate() {
 }
 
 function canPreviewVpn(user) {
-  return user?.id === "b22e3c94-63ec-4d85-945f-05ec16aad38a" || getVpnAccess(user?.id).active;
+  // Complimentary 30-day VPN trial is limited to the owner's account.
+  return user?.id === "54e40a3f-aec5-4b89-9cf7-b4fcfaec8cd9" || getVpnAccess(user?.id).active;
 }
 
 function getVpnAccess(userId) {
@@ -2763,6 +2765,36 @@ const googleAuthLimiter = rateLimit({
   legacyHeaders: false
 });
 
+app.get("/api/desktop-auth/start", googleAuthLimiter, (req, res) => {
+  if (!googleOAuthConfigured) return res.status(503).send("Google login is not configured.");
+  const codeChallenge = String(req.query.code_challenge || "");
+  const redirectValue = String(req.query.redirect_uri || "");
+  if (!/^[A-Za-z0-9_-]{43,128}$/.test(codeChallenge)) {
+    return res.status(400).send("Invalid PKCE challenge.");
+  }
+  let redirectUri;
+  try { redirectUri = new URL(redirectValue); }
+  catch { return res.status(400).send("Invalid desktop callback."); }
+  const callbackPort = Number(redirectUri.port);
+  if (redirectUri.protocol !== "http:" || redirectUri.hostname !== "127.0.0.1" ||
+      redirectUri.pathname !== "/oauth/callback" || redirectUri.username || redirectUri.password ||
+      redirectUri.search || redirectUri.hash || !Number.isInteger(callbackPort) || callbackPort < 1 || callbackPort > 65535) {
+    return res.status(400).send("Desktop callback must use a local 127.0.0.1 address.");
+  }
+  req.session.desktopAuth = {
+    codeChallenge,
+    redirectUri: redirectUri.origin + redirectUri.pathname,
+    startedAt: Date.now()
+  };
+  req.session.save((error) => {
+    if (error) {
+      console.error("Desktop auth session save failed:", error.code || error.name);
+      return res.status(503).send("Could not start desktop sign-in.");
+    }
+    res.redirect("/auth/google?desktop=1");
+  });
+});
+
 app.get("/auth/google", googleAuthLimiter, (req, res) => {
   if (!googleOAuthConfigured) {
     return res.redirect("/account.html?oauth=google_unconfigured");
@@ -2780,20 +2812,33 @@ app.get("/auth/google", googleAuthLimiter, (req, res) => {
 });
 
 app.get("/auth/google/callback", googleAuthLimiter, async (req, res) => {
+  let desktopAuth = null;
+  const redirectDesktop = (key, value) => {
+    if (!desktopAuth) return false;
+    const target = new URL(desktopAuth.redirectUri);
+    target.searchParams.set(key, value);
+    res.redirect(target.toString());
+    return true;
+  };
   try {
+    const candidate = req.session.desktopAuth;
+    if (candidate && Date.now() - Number(candidate.startedAt) <= 5 * 60 * 1000) desktopAuth = candidate;
     const error = String(req.query.error || "");
     const code = String(req.query.code || "");
     const state = String(req.query.state || "");
 
     if (error) {
+      if (redirectDesktop("error", "cancelled")) return;
       return res.redirect("/account.html?oauth=cancelled");
     }
 
     if (!code || !state || state !== req.session.oauthState) {
+      if (redirectDesktop("error", "invalid")) return;
       return res.redirect("/account.html?oauth=invalid");
     }
 
     delete req.session.oauthState;
+    delete req.session.desktopAuth;
     const tokens = await exchangeGoogleCode(code);
     const profile = await fetchGoogleProfile(tokens.access_token);
     const user = await findOrCreateGoogleUser(profile);
@@ -2801,6 +2846,7 @@ app.get("/auth/google/callback", googleAuthLimiter, async (req, res) => {
     req.session.regenerate((sessionError) => {
       if (sessionError) {
         console.error("Google login session failed:", sessionError);
+        if (redirectDesktop("error", "session")) return;
         return res.redirect("/account.html?oauth=session");
       }
 
@@ -2808,15 +2854,63 @@ app.get("/auth/google/callback", googleAuthLimiter, async (req, res) => {
       req.session.save((saveError) => {
         if (saveError) {
           console.error("Google login session save failed:", saveError.code || saveError.name);
+          if (redirectDesktop("error", "session")) return;
           return res.redirect("/account.html?oauth=session");
+        }
+        if (desktopAuth) {
+          const now = Date.now();
+          for (const [ticket, handoff] of desktopAuthHandoffs) {
+            if (handoff.expiresAt <= now) desktopAuthHandoffs.delete(ticket);
+          }
+          const ticket = randomBytes(32).toString("base64url");
+          desktopAuthHandoffs.set(ticket, {
+            userId: user.id,
+            codeChallenge: desktopAuth.codeChallenge,
+            expiresAt: now + 2 * 60 * 1000
+          });
+          return redirectDesktop("ticket", ticket);
         }
         res.redirect("/profile.html");
       });
     });
   } catch (error) {
     console.error("Google OAuth failed:", error);
-    res.redirect(`/account.html?oauth=${error?.name === "AbortError" ? "timeout" : "failed"}`);
+    if (redirectDesktop("error", error?.name === "AbortError" ? "timeout" : "failed")) return;
+    res.redirect("/account.html?oauth=" + (error?.name === "AbortError" ? "timeout" : "failed"));
   }
+});
+
+app.post("/api/desktop-auth/exchange", googleAuthLimiter, async (req, res, next) => {
+  try {
+    const ticket = String(req.body.ticket || "");
+    const verifier = String(req.body.code_verifier || "");
+    if (!/^[A-Za-z0-9_-]{40,100}$/.test(ticket) || !/^[A-Za-z0-9._~-]{43,128}$/.test(verifier)) {
+      return res.status(400).json({ error: "Invalid desktop sign-in data." });
+    }
+    const handoff = desktopAuthHandoffs.get(ticket);
+    if (!handoff || handoff.expiresAt <= Date.now()) {
+      desktopAuthHandoffs.delete(ticket);
+      return res.status(410).json({ error: "Desktop sign-in expired. Try again." });
+    }
+    const codeChallenge = createHash("sha256").update(verifier).digest("base64url");
+    if (!constantTimeEqual(codeChallenge, handoff.codeChallenge)) {
+      return res.status(401).json({ error: "Desktop sign-in could not be verified." });
+    }
+    desktopAuthHandoffs.delete(ticket);
+    const { user } = await getCurrentUserRecord(handoff.userId);
+    if (!user || !user.emailVerified) return res.status(401).json({ error: "Account is unavailable." });
+    req.session.regenerate((error) => {
+      if (error) return res.status(500).json({ error: "Could not create a secure session." });
+      req.session.userId = user.id;
+      req.session.save((saveError) => {
+        if (saveError) {
+          console.error("Desktop login session save failed:", saveError.code || saveError.name);
+          return res.status(503).json({ error: "Could not save the desktop session." });
+        }
+        res.json({ user: publicUser(user) });
+      });
+    });
+  } catch (error) { next(error); }
 });
 
 app.post("/api/register", authLimiter, async (req, res) => {
@@ -2938,6 +3032,10 @@ app.post("/api/resend-verification", resendLimiter, async (req, res) => {
   await saveUsers(updatedUsers);
 
   res.json({ message: "En ny bekreftelseslenke ble sendt." });
+});
+
+require("./lib/password-reset").installPasswordReset(app, {
+  openDatabase, mailTransport, baseUrl: APP_BASE_URL, from: process.env.SMTP_FROM
 });
 
 app.post("/api/login", authLimiter, async (req, res) => {

@@ -1685,7 +1685,7 @@ body[data-title-key="routes.title"] .ad-layout {
   font-weight: 800;
 }
 
-.account-message {
+.auth-message.account-message {
   margin: 16px 30px 0;
 }
 
@@ -1791,6 +1791,27 @@ body[data-title-key="routes.title"] .ad-layout {
 .resend-inline-form {
   margin: 0 16px 16px;
 }
+
+#resetMessage:not(:empty) {
+  margin: 12px 16px 16px;
+  overflow-wrap: anywhere;
+}
+
+.account-login-column { min-width: 0; }
+.account-login-column > .account-auth-form { height: auto; }
+#forgotPasswordLink {
+  justify-self: start;
+  color: #2456ba;
+  font-size: 14px;
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+#forgotPasswordLink:hover { text-decoration: underline; }
+#forgotPasswordLink:focus-visible { outline: 2px solid #2456ba; outline-offset: 4px; }
+.account-password-help { margin-top: 16px; border-top: 1px solid #dbe3ee; padding-top: 16px; }
+.account-password-help[hidden] { display: none !important; }
+.account-password-help .resend-inline-form { margin: 0; }
+.account-password-help #resetMessage:not(:empty) { margin: 12px 0 0; }
 
 .auth-page,
 .profile-page {
@@ -3875,7 +3896,7 @@ body.admin-dark .admin-empty {
   .account-auth-grid,
   .auth-divider,
   .inline-oauth-row,
-  .account-message,
+  .auth-message.account-message,
   .resend-details {
     margin-left: 16px;
     margin-right: 16px;

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4170638776610956" crossorigin="anonymous"></script>
+  <meta name="referrer" content="no-referrer" />
   <title>Профиль</title>
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
-  <link rel="stylesheet" href="style.css?v=analytics-1" />
+  <link rel="stylesheet" href="style.css?v=reset-layout-3" />
 </head>
 <body data-title-key="account.title">
   <header class="topbar">
@@ -49,7 +49,6 @@
 
           <button type="submit" data-i18n="account.login">Logg inn</button>
         </form>
-
         <form id="registerForm" class="auth-form account-auth-form">
           <h2 data-i18n="account.register">Registrer deg</h2>
           <label for="registerName" data-i18n="account.name">Navn</label>
@@ -79,6 +78,24 @@
         </a>
         <p id="oauthSetupHint" class="oauth-setup-hint" hidden data-i18n="account.googleSetup">Google login needs setup in .env.</p>
       </div>
+
+      <details id="passwordHelp" class="resend-details">
+        <summary data-reset-text="forgot">Glemt passord?</summary>
+        <form id="forgotPasswordForm" class="auth-form single-form resend-inline-form">
+          <label for="resetEmail" data-i18n="account.email">E-post</label>
+          <input id="resetEmail" type="email" autocomplete="email" maxlength="254" required />
+          <button type="submit" data-reset-text="send">Send lenke</button>
+        </form>
+        <form id="resetPasswordForm" class="auth-form single-form resend-inline-form" hidden>
+          <label for="newPassword" data-reset-text="newPassword">Nytt passord</label>
+          <input id="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="72" required />
+          <p data-reset-text="hint">Minst 12 tegn.</p>
+          <label for="confirmPassword" data-reset-text="confirm">Gjenta passordet</label>
+          <input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" maxlength="72" required />
+          <button type="submit" data-reset-text="save">Lagre nytt passord</button>
+        </form>
+        <p id="resetMessage" class="auth-message" role="status" aria-live="polite"></p>
+      </details>
 
       <details class="resend-details">
         <summary data-i18n="account.resendTitle">Send lenke pa nytt</summary>
@@ -110,7 +127,7 @@
     </nav>
   </footer>
 
-  <script type="module" src="./js/account.js?v=author-1"></script>
+  <script type="module" src="./js/account.js?v=password-reset-3"></script>
   <script type="module" src="./js/support-chat.js?v=author-1"></script>
 </body>
 </html>
