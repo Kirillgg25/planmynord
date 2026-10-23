@@ -69,7 +69,39 @@ function clearMessage() {
   profileMessage.className = "auth-message";
 }
 
+const vpnCopy = {
+  ru: {title:"VPN и устройства",loading:"Загружаем подписку…",name:"Название устройства",placeholder:"Мой телефон",type:"Тип",add:"Добавить устройство",other:"Другое",free:"Бесплатно",active:"Подписка активна. Конфигурация появится после подключения VPN-сервера.",testing:"Закрытое тестирование. VPN-сервер ещё не подключён.",empty:"Устройств пока нет. Добавь телефон или компьютер.",added:"добавлено",rename:"Переименовать",disconnect:"Отключить",renamePrompt:"Новое название устройства",disconnectPrompt:"Отключить это устройство от VPN-аккаунта?",success:"Устройство добавлено.",error:"Не удалось выполнить запрос VPN. Попробуй ещё раз."},
+  en: {title:"VPN and devices",loading:"Loading subscription…",name:"Device name",placeholder:"My phone",type:"Type",add:"Add device",other:"Other",free:"Free",active:"Subscription active. Configuration will be available once the VPN server is connected.",testing:"Closed testing. The VPN server is not connected yet.",empty:"No devices yet. Add a phone or computer.",added:"added",rename:"Rename",disconnect:"Disconnect",renamePrompt:"New device name",disconnectPrompt:"Disconnect this device from your VPN account?",success:"Device added.",error:"Could not complete the VPN request. Please try again."},
+  no: {title:"VPN og enheter",loading:"Laster abonnement…",name:"Enhetsnavn",placeholder:"Min telefon",type:"Type",add:"Legg til enhet",other:"Annet",free:"Gratis",active:"Abonnementet er aktivt. Konfigurasjonen blir tilgjengelig når VPN-serveren er koblet til.",testing:"Lukket testing. VPN-serveren er ikke koblet til ennå.",empty:"Ingen enheter ennå. Legg til en telefon eller datamaskin.",added:"lagt til",rename:"Gi nytt navn",disconnect:"Koble fra",renamePrompt:"Nytt navn på enheten",disconnectPrompt:"Koble denne enheten fra VPN-kontoen?",success:"Enheten er lagt til.",error:"Kunne ikke fullføre VPN-forespørselen. Prøv igjen."}
+};
+const vpnText = key => (vpnCopy[getLanguage()] || vpnCopy.en)[key];
+let currentVpnAccount = null;
 function renderVpnOffer() {
+  document.querySelector(".vpn-account-block h2").textContent = vpnText("title");
+  vpnDeviceName.closest("label").querySelector("span").textContent = vpnText("name");
+  vpnDeviceName.placeholder = vpnText("placeholder");
+  vpnDevicePlatform.closest("label").querySelector("span").textContent = vpnText("type");
+  vpnDevicePlatform.querySelector('[value="other"]').textContent = vpnText("other");
+  vpnDeviceForm.querySelector('[type="submit"]').textContent = vpnText("add");
+  if (currentVpnAccount) renderVpnAccount(currentVpnAccount.subscription, currentVpnAccount.devices);
+  else {
+    vpnSubscriptionStatus.textContent = vpnText("loading");
+    vpnDeviceLimit.textContent = vpnText("free");
+  }
+  if (vpnDeviceMessage.dataset.copy) vpnDeviceMessage.textContent = vpnText(vpnDeviceMessage.dataset.copy);
+  let downloads = document.getElementById("vpnDownloadsLink");
+  if (!downloads) {
+    downloads = document.createElement("a");
+    downloads.id = "vpnDownloadsLink";
+    downloads.href = "vpn.html";
+    downloads.className = "secondary-link-button";
+    document.getElementById("vpnOffer").append(downloads);
+  }
+  downloads.textContent = ({
+    ru: "VPN: приложения для Windows и Android",
+    en: "VPN: Windows and Android apps",
+    no: "VPN: apper for Windows og Android"
+  })[getLanguage()] || "VPN apps";
   const labels = {
     ru: ['99 NOK / 30 дней', 'До 5 устройств. Разовая оплата, без автопродления.', 'Оплата пока недоступна', 'Ссылка для ручного подключения появится после настройки 3x-ui. VPN пока недоступен.'],
     en: ['99 NOK / 30 days', 'Up to 5 devices. One-time payment, no automatic renewal.', 'Payment not available yet', 'A manual connection link will appear after 3x-ui is configured. VPN is not available yet.'],
@@ -89,20 +121,21 @@ function vpnPlatformLabel(platform) {
     ios: "iPhone / iPad",
     macos: "macOS",
     linux: "Linux",
-    other: "Другое"
-  }[platform] || "Другое";
+    other: vpnText("other")
+  }[platform] || vpnText("other");
 }
 
 function renderVpnAccount(subscription, devices) {
+  currentVpnAccount = { subscription, devices };
   const active = subscription?.plan === "vpn" && subscription?.status === "active"
     && new Date(subscription.endsAt).getTime() > Date.now();
   vpnSubscriptionStatus.textContent = active
-    ? "Подписка активна. Конфигурация появится после подключения VPN-сервера."
-    : "Закрытое тестирование. VPN-сервер ещё не подключён.";
-  vpnDeviceLimit.textContent = `${subscription?.plan === "free" ? "Бесплатно" : subscription?.plan || "VPN"} · ${devices.length}/${subscription?.deviceLimit || 0}`;
+    ? vpnText("active")
+    : vpnText("testing");
+  vpnDeviceLimit.textContent = `${subscription?.plan === "free" ? vpnText("free") : "VPN"} · ${devices.length}/${subscription?.deviceLimit || 0}`;
 
   if (!devices.length) {
-    vpnDeviceList.innerHTML = "<p>Устройств пока нет. Добавь телефон или компьютер.</p>";
+    vpnDeviceList.innerHTML = `<p>${escapeHtml(vpnText("empty"))}</p>`;
     return;
   }
 
@@ -110,11 +143,11 @@ function renderVpnAccount(subscription, devices) {
     <article class="vpn-device-card">
       <div>
         <strong>${escapeHtml(device.name)}</strong>
-        <p>${vpnPlatformLabel(device.platform)} · добавлено ${new Date(device.createdAt).toLocaleDateString()}</p>
+        <p>${vpnPlatformLabel(device.platform)} · ${vpnText("added")} ${new Date(device.createdAt).toLocaleDateString({no:"nb-NO",en:"en-GB",ru:"ru-RU"}[getLanguage()] || "en-GB")}</p>
       </div>
       <div class="vpn-device-actions">
-        <button type="button" class="secondary-button rename-vpn-device" data-device-id="${device.id}" data-device-name="${escapeHtml(device.name)}">Переименовать</button>
-        <button type="button" class="avatar-remove-button remove-vpn-device" data-device-id="${device.id}">Отключить</button>
+        <button type="button" class="secondary-button rename-vpn-device" data-device-id="${escapeHtml(device.id)}" data-device-name="${escapeHtml(device.name)}">${vpnText("rename")}</button>
+        <button type="button" class="avatar-remove-button remove-vpn-device" data-device-id="${escapeHtml(device.id)}">${vpnText("disconnect")}</button>
       </div>
     </article>
   `).join("");
@@ -123,11 +156,13 @@ function renderVpnAccount(subscription, devices) {
 async function loadVpnAccount() {
   const result = await getVpnAccount();
   if (result.error) {
-    vpnDeviceMessage.textContent = result.error;
+    vpnDeviceMessage.dataset.copy = "error";
+    vpnDeviceMessage.textContent = vpnText("error");
     vpnDeviceMessage.className = "auth-message error";
     return;
   }
   vpnDeviceMessage.textContent = "";
+  delete vpnDeviceMessage.dataset.copy;
   vpnDeviceMessage.className = "auth-message";
   renderVpnAccount(result.subscription, result.devices || []);
 }
@@ -554,12 +589,14 @@ vpnDeviceForm.addEventListener("submit", async (event) => {
     platform: vpnDevicePlatform.value
   });
   if (result.error) {
-    vpnDeviceMessage.textContent = result.error;
+    vpnDeviceMessage.dataset.copy = "error";
+    vpnDeviceMessage.textContent = vpnText("error");
     vpnDeviceMessage.className = "auth-message error";
     return;
   }
   vpnDeviceName.value = "";
-  vpnDeviceMessage.textContent = "Устройство добавлено.";
+  vpnDeviceMessage.dataset.copy = "success";
+  vpnDeviceMessage.textContent = vpnText("success");
   vpnDeviceMessage.className = "auth-message success";
   await loadVpnAccount();
 });
@@ -569,21 +606,23 @@ vpnDeviceList.addEventListener("click", async (event) => {
   const removeButton = event.target.closest(".remove-vpn-device");
 
   if (renameButton) {
-    const name = window.prompt("Новое название устройства", renameButton.dataset.deviceName || "");
+    const name = window.prompt(vpnText("renamePrompt"), renameButton.dataset.deviceName || "");
     if (!name) return;
     const result = await renameVpnDevice(renameButton.dataset.deviceId, name.trim());
     if (result.error) {
-      vpnDeviceMessage.textContent = result.error;
+      vpnDeviceMessage.dataset.copy = "error";
+      vpnDeviceMessage.textContent = vpnText("error");
       vpnDeviceMessage.className = "auth-message error";
       return;
     }
     await loadVpnAccount();
   }
 
-  if (removeButton && window.confirm("Отключить это устройство от VPN-аккаунта?")) {
+  if (removeButton && window.confirm(vpnText("disconnectPrompt"))) {
     const result = await removeVpnDevice(removeButton.dataset.deviceId);
     if (result.error) {
-      vpnDeviceMessage.textContent = result.error;
+      vpnDeviceMessage.dataset.copy = "error";
+      vpnDeviceMessage.textContent = vpnText("error");
       vpnDeviceMessage.className = "auth-message error";
       return;
     }

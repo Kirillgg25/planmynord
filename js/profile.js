@@ -83,6 +83,19 @@ function clearMessage() {
 }
 
 function renderVpnOffer() {
+  let downloads = document.getElementById("vpnDownloadsLink");
+  if (!downloads) {
+    downloads = document.createElement("a");
+    downloads.id = "vpnDownloadsLink";
+    downloads.href = "vpn.html";
+    downloads.className = "secondary-link-button";
+    document.getElementById("vpnOffer").append(downloads);
+  }
+  downloads.textContent = ({
+    ru: "VPN: приложения для Windows и Android",
+    en: "VPN: Windows and Android apps",
+    no: "VPN: apper for Windows og Android"
+  })[getLanguage()] || "VPN apps";
   const labels = {
     ru: ['99 NOK / 30 дней', 'До 5 устройств. Разовая оплата, без автопродления.', 'Оплата пока недоступна', 'Ссылка для ручного подключения появится после настройки 3x-ui. VPN пока недоступен.'],
     en: ['99 NOK / 30 days', 'Up to 5 devices. One-time payment, no automatic renewal.', 'Payment not available yet', 'A manual connection link will appear after 3x-ui is configured. VPN is not available yet.'],

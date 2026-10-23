@@ -436,6 +436,12 @@ app.use(
   })
 );
 
+app.get('/vpn.html', requireAuth, (req, res) => {
+  if (!canPreviewVpn(req.currentUser)) return res.sendStatus(404);
+  res.set({ 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex, nofollow' });
+  res.sendFile(path.join(PUBLIC_DIR, 'vpn.html'));
+});
+
 app.use(publicSiteMiddleware(PUBLIC_DIR));
 
 // Private VPN preview: authorize every endpoint, including product and payments.
@@ -444,6 +450,10 @@ app.use("/api/vpn", requireAuth, (req, res, next) => {
     return res.status(404).json({ error: "Not found" });
   }
   next();
+});
+
+require('./lib/vpn-downloads').installVpnDownloads(app, {
+  directory: path.join(__dirname, 'releases', 'vpn')
 });
 
 const authLimiter = rateLimit({

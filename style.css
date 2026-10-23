@@ -1501,6 +1501,30 @@ li {
 
 .profile-page.ad-page {
   display: block;
+  max-width: 1480px;
+}
+
+.profile-page > .ad-layout {
+  max-width: none;
+}
+
+/* Short document pages keep the footer at the viewport bottom. */
+body:has(> .legal-footer) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
+}
+
+body:has(> .legal-footer) > main {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+body:has(> .legal-footer) > .topbar,
+body:has(> .legal-footer) > .legal-footer {
+  flex-shrink: 0;
 }
 
 .ad-layout > .panel {
@@ -1542,11 +1566,11 @@ body[data-title-key="routes.title"] .ad-layout {
 }
 
 .side-ad-left {
-  left: max(16px, calc((100vw - 1220px) / 2));
+  left: calc(50% - 904px);
 }
 
 .side-ad-right {
-  right: max(16px, calc((100vw - 1220px) / 2));
+  right: calc(50% - 904px);
 }
 
 .ad-card {
@@ -2451,6 +2475,8 @@ body[data-title-key="routes.title"] .ad-layout {
 }
 
 .routes-grid .stop-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -3199,6 +3225,7 @@ body.admin-dark .language-switcher select {
 
 body.admin-dark .admin-language-switcher {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   width: auto;
@@ -3939,7 +3966,7 @@ body.admin-dark .admin-empty {
   }
 }
 
-@media (min-width: 1220px) {
+@media (min-width: 1840px) {
   .side-ad {
     display: block;
   }
@@ -4828,7 +4855,7 @@ body.admin-dark .admin-empty {
   }
 
   .routes-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .day-card-actions,
@@ -7821,7 +7848,9 @@ body[data-title-key="home.title"] .home-footer {
 }
 
 @media (min-width: 761px) and (max-width: 1300px) {
-  .topbar .topnav {
+  .topbar .topnav,
+  body[data-title-key="home.title"] .topbar .topnav {
+    flex-wrap: wrap;
     column-gap: 8px;
     row-gap: 8px;
   }

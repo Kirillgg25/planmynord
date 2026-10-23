@@ -1,0 +1,26 @@
+.vpn-page { width: 100%; max-width: 1280px; margin: 0 auto; padding: 40px 24px 56px; }
+.vpn-heading { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.vpn-heading h1 { margin: 4px 0; font-size: 34px; }
+.vpn-heading > a { margin-left: auto; }
+.vpn-eyebrow { color: #16725d; margin: 0; font-weight: 700; }
+.vpn-intro { max-width: 760px; line-height: 1.6; margin: 24px 0; }
+.vpn-plan { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: center; padding: 20px 0; border-block: 1px solid #cbd5e1; margin-bottom: 32px; }
+.vpn-plan strong { font-size: 24px; }
+.vpn-plan strong span { font-size: 16px; font-weight: 400; }
+.vpn-warning { border-left: 3px solid #b68b20; padding: 8px 16px; line-height: 1.5; }
+.vpn-download-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; margin-top: 24px; }
+.vpn-download { display: flex; flex-direction: column; align-items: start; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; padding: 28px; min-width: 0; }
+.vpn-download h3 { margin: 8px 0; font-size: 24px; }
+.vpn-download p { line-height: 1.5; }
+.vpn-platform-label,.vpn-file-meta,.vpn-other { color: #536277; font-size: 14px; }
+.vpn-download-link { margin-top: auto; }
+.vpn-download-link[hidden],.vpn-unavailable[hidden] { display: none; }
+.vpn-connection { margin-top: 36px; padding-top: 20px; border-top: 1px solid #cbd5e1; }
+.vpn-connection p { max-width: 780px; line-height: 1.6; }
+@media(max-width:640px) {
+  .vpn-page { padding: 24px 16px 36px; }
+  .vpn-download-grid { grid-template-columns: minmax(0,1fr); }
+  .vpn-heading h1 { font-size: 26px; }
+  .vpn-heading > a { margin-left: 0; }
+  .vpn-download { padding: 20px; }
+}

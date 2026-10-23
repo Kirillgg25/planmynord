@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>PlanMyNord VPN</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css?v=vpn-downloads-1" />
+  <link rel="stylesheet" href="vpn.css?v=1" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="/">PlanMyNord</a>
+    <nav class="topnav">
+      <a href="index.html" data-i18n="nav.home">Hjem</a>
+      <a href="planner.html" data-i18n="nav.plan">Planlegg</a>
+      <a href="profile.html" data-i18n="nav.account">Profil</a>
+      <a href="vpn.html" aria-current="page">VPN</a>
+    </nav>
+  </header>
+  <main class="vpn-page">
+    <header class="vpn-heading">
+      <img src="assets/logo.svg" alt="" width="56" height="56" />
+      <div><p class="vpn-eyebrow" data-copy="preview">Lukket testing</p><h1>PlanMyNord VPN</h1></div>
+      <a href="profile.html" class="secondary-link-button" data-copy="devices">Mine enheter</a>
+    </header>
+    <p class="vpn-intro" data-copy="intro"></p>
+    <div class="vpn-plan"><strong>99 NOK <span data-copy="period"></span></strong><span data-copy="limit"></span></div>
+    <section aria-labelledby="downloadTitle">
+      <h2 id="downloadTitle" data-copy="downloads"></h2>
+      <p class="vpn-warning" data-copy="warning"></p>
+      <p class="vpn-warning" data-copy="unsigned"></p>
+      <p id="downloadStatus" role="status" aria-live="polite"></p>
+      <div class="vpn-download-grid">
+        <article class="vpn-download" data-platform="windows">
+          <span class="vpn-platform-label">PC / x64</span><h3>Windows</h3>
+          <p data-copy="windows"></p><p class="vpn-file-meta"></p>
+          <a class="primary-link-button vpn-download-link" hidden data-copy="downloadExe"></a>
+          <p class="vpn-unavailable" data-copy="pending"></p>
+        </article>
+        <article class="vpn-download" data-platform="android">
+          <span class="vpn-platform-label">APK / Android 10+</span><h3>Android</h3>
+          <p data-copy="android"></p><p class="vpn-file-meta"></p>
+          <a class="primary-link-button vpn-download-link" hidden data-copy="downloadApk"></a>
+          <p class="vpn-unavailable" data-copy="pending"></p>
+        </article>
+      </div>
+      <p class="vpn-other" data-copy="other"></p>
+    </section>
+    <section class="vpn-connection"><h2 data-copy="connection"></h2><p data-copy="connectionText"></p><a href="profile.html" data-copy="devices"></a></section>
+  </main>
+  <footer class="legal-footer">
+    <div class="legal-footer-brand"><strong>PlanMyNord</strong><p data-copy="preview"></p></div>
+    <div class="legal-footer-info"><a href="profile.html" data-copy="devices"></a></div>
+    <nav class="legal-footer-links"><a href="terms.html" data-i18n="footer.terms">Terms</a><a href="privacy.html" data-i18n="footer.privacy">Privacy</a><a href="about.html" data-i18n="nav.about">Om prosjektet</a></nav>
+  </footer>
+  <script type="module" src="js/vpn-page.js?v=1"></script>
+</body>
+</html>

@@ -97,6 +97,13 @@ const translations = {
     "about.blockAccountTitle": "Konto og lagring",
     "about.blockAccountText": "Profilen brukes til lagrede ruter og publisering av ruteideer. De viktigste planleggingsfunksjonene er åpne.",
     "about.stackKicker": "Hva vi bruker",
+    "about.vpnKicker": "Lukket testing",
+    "about.vpnTitle": "PlanMyNord VPN",
+    "about.vpnIntro": "Et eget prosjekt ved siden av reiseplanleggeren: VPN-apper for Windows og Android, med enhetsadministrasjon i PlanMyNord-profilen.",
+    "about.vpnApps": "Windows-installasjonsprogram og test-APK for Android er tilgjengelige for kontoer med VPN-tilgang.",
+    "about.vpnPlan": "Planlagt abonnement: 99 NOK i 30 dager, opptil 5 enheter, uten automatisk fornyelse.",
+    "about.vpnStatus": "VPN er fortsatt under utvikling. Windows-installasjonsfilen er usignert, og Android-appen er en debug-versjon. Tilkobling krever en individuell VPN-profil; installasjon alene gir ikke tilgang.",
+    "about.vpnLink": "Åpne profilen",
     "about.stackTitle": "Teknologi og eksterne tjenester nå",
     "about.note": "Ruter, priser og vær er planleggingshjelp. Før reisen bør billetter, veier, åpningstider og regler kontrolleres hos offisielle tjenester.",
     "tickets.title": "Flybilletter til Norge",
@@ -639,6 +646,13 @@ const translations = {
     "about.blockAccountTitle": "Account and saving",
     "about.blockAccountText": "The profile is used for saved routes and published route ideas. The main planning features stay open.",
     "about.stackKicker": "What we use",
+    "about.vpnKicker": "Closed testing",
+    "about.vpnTitle": "PlanMyNord VPN",
+    "about.vpnIntro": "A separate project alongside the trip planner: VPN apps for Windows and Android, with device management in your PlanMyNord profile.",
+    "about.vpnApps": "A Windows installer and a test Android APK are available to accounts with VPN access.",
+    "about.vpnPlan": "Planned subscription: 99 NOK for 30 days, up to 5 devices, with no automatic renewal.",
+    "about.vpnStatus": "VPN is still in development. The Windows installer is unsigned and the Android app is a debug build. Connection requires an individual VPN profile; installation alone does not provide access.",
+    "about.vpnLink": "Open your profile",
     "about.stackTitle": "Current technology and external services",
     "about.note": "Routes, prices and weather are planning help. Before travelling, tickets, roads, opening hours and rules should be checked with official services.",
     "tickets.title": "Flights to Norway",
@@ -1181,6 +1195,13 @@ const translations = {
     "about.blockAccountTitle": "Аккаунт и сохранение",
     "about.blockAccountText": "Профиль нужен для сохранённых маршрутов и публикации готовых идей. Основные функции планирования остаются открытыми.",
     "about.stackKicker": "Что используем",
+    "about.vpnKicker": "Закрытое тестирование",
+    "about.vpnTitle": "PlanMyNord VPN",
+    "about.vpnIntro": "Отдельный проект рядом с планировщиком путешествий: VPN-приложения для Windows и Android с управлением устройствами в профиле PlanMyNord.",
+    "about.vpnApps": "Установщик Windows и тестовый APK для Android доступны аккаунтам с VPN-доступом.",
+    "about.vpnPlan": "Планируемый тариф: 99 NOK за 30 дней, до 5 устройств, без автопродления.",
+    "about.vpnStatus": "VPN ещё разрабатывается. Установщик Windows без подписи издателя, Android-приложение — debug-сборка. Для подключения нужен индивидуальный VPN-профиль: сама установка не предоставляет доступ.",
+    "about.vpnLink": "Открыть профиль",
     "about.stackTitle": "Текущие технологии и внешние сервисы",
     "about.note": "Маршруты, цены и погода являются подсказками для планирования. Перед поездкой нужно проверять билеты, дороги, часы работы и правила у официальных сервисов.",
     "tickets.title": "Билеты до Норвегии",
@@ -1875,7 +1896,7 @@ function initAnalyticsConsent() {
   };
   const enable = () => {
     // Keep account, verification and payment URLs out of analytics.
-    if (/\/(account|profile|admin|verify-email|auth|payment-)/.test(location.pathname)) return;
+    if (/\/(account|profile|admin|vpn|verify-email|auth|payment-)/.test(location.pathname)) return;
     window[`ga-disable-${id}`] = false;
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
