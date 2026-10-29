@@ -1816,6 +1816,26 @@ body[data-title-key="routes.title"] .ad-layout {
   margin: 0 16px 16px;
 }
 
+.account-auth-form { align-content: start; }
+.password-field { position: relative; min-width: 0; width: 100%; align-self: start; }
+.password-field input { width: 100%; padding-right: 50px; }
+.password-field .password-visibility {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 36px; min-width: 0; padding: 8px;
+  background: transparent; color: #475569; border: 0; border-radius: 6px; box-shadow: none;
+}
+.password-visibility::before {
+  content: ""; display: block; width: 22px; height: 22px; background: currentColor;
+  mask: url("assets/icons/eye.svg") center / contain no-repeat;
+}
+.password-visibility.is-visible::before { mask-image: url("assets/icons/eye-off.svg"); }
+.password-field .password-visibility:hover { background: #e7eef8; }
+.password-field .password-visibility:focus-visible { outline: 2px solid #2456ba; outline-offset: 1px; }
+.password-feedback { min-width: 0; font-size: 13px; color: #475569; }
+.password-feedback meter { display: block; width: 100%; height: 12px; }
+.password-feedback meter[hidden] { display: none; }
+.password-feedback p { margin: 5px 0; line-height: 1.45; overflow-wrap: anywhere; }
+
 #resetMessage:not(:empty) {
   margin: 12px 16px 16px;
   overflow-wrap: anywhere;

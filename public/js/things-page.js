@@ -11,7 +11,7 @@ const phrases = {
   'Legg denne byen til reisen': ['Add this city to the trip','Добавить город в поездку'],
   'Populære byer': ['Popular cities','Популярные города'], 'Andre byer': ['Other cities','Другие города'],
   'Tilpass turen': ['Customize your trip','Настройки поездки'], 'Plan dag for dag': ['Day-by-day plan','План по дням'],
-  'Velg steder': ['Choose places','Выбери места'], 'Steder som passer interessene dine': ['Places matching your interests','Места по твоим интересам'],
+  'Velg steder': ['Choose places','Выбери места'], 'Steder som passer interessene dine': ['Places matching your interests','Места по твоим интересам'], 'Passer interessene dine': ['Matches your interests','Подходит под твои интересы'],
   'Utenfor valgt by': ['Outside the selected city','За пределами выбранного города'],
   'Avstand': ['Distance','Расстояние'], 'Tid': ['Time','Время'], 'Pris': ['Price','Стоимость'], 'Passer i regn': ['Suitable in rain','Подходит в дождь'],
   'Vis på kartet': ['Show on map','Показать на карте'], 'Lagt til ✓': ['Added ✓','Добавлено ✓'], 'Legg til i ruten': ['Add to route','Добавить в маршрут'], 'Offisiell kilde': ['Official source','Официальный источник'],
@@ -21,7 +21,8 @@ const phrases = {
   'Lunsj': ['Lunch','Обед'], 'Lunsj i sentrum': ['Lunch in the city centre','Обед в центре'], 'Tid til egne valg': ['Time for your own plans','Время для своих планов'], 'Rolig avslutning': ['A relaxed finish','Спокойное завершение дня'],
   'To rolige bydager der de fleste stoppene bindes sammen til fots eller med kort kollektivtur.': ['Two relaxed city days, mostly on foot with short public transport journeys.','Два спокойных дня в городе: между остановками можно ходить пешком или недолго ехать на общественном транспорте.'],
   'Bjørvika og havnepromenaden': ['Bjørvika and the waterfront','Бьёрвика и набережная'], 'Parker og vestkanten': ['Parks and the west side','Парки и западная часть города'],
-  'Frokost i Bjørvika': ['Breakfast in Bjørvika','Завтрак в Бьёрвике'], 'Operahuset – gå på taket': ['Opera House roof walk','Прогулка по крыше Оперного театра'], 'Lunsj ved Barcode': ['Lunch near Barcode','Обед у квартала Barcode'], 'MUNCH eller Akershus festning': ['MUNCH or Akershus Fortress','Музей MUNCH или крепость Акерсхус'], 'Havnepromenaden til Aker Brygge': ['Waterfront walk to Aker Brygge','По набережной до Акер-Брюгге'], 'Lunsj på Majorstuen': ['Lunch in Majorstuen','Обед в Майорстюэне'], 'Frogner eller Bygdøy': ['Frogner or Bygdøy','Фрогнер или Бюгдёй'], 'Kaffe i sentrum': ['Coffee in the city centre','Кофе в центре'],
+  'Frokost i Bjørvika': ['Breakfast in Bjørvika','Завтрак в Бьёрвике'], 'Operahuset – gå på taket': ['Opera House roof walk','Прогулка по крыше Оперного театра'], 'Lunsj ved Barcode': ['Lunch near Barcode','Обед у квартала Barcode'], 'MUNCH': ['MUNCH museum','Музей MUNCH'], 'Akershus festning – uteområdet': ['Akershus Fortress grounds','Территория крепости Акерсхус'], 'Havnepromenaden til Aker Brygge': ['Waterfront walk to Aker Brygge','По набережной до Акер-Брюгге'], 'Lunsj på Majorstuen': ['Lunch in Majorstuen','Обед в Майорстюэне'], 'Vigelandsparken og Frognerparken': ['Vigeland Park and Frogner Park','Парк Вигеланда и парк Фрогнер'], 'Bygdøy – velg museum etter åpningstid': ['Bygdøy: choose a museum based on opening hours','Бюгдёй: выбери музей с учётом часов работы'], 'Kaffe i sentrum': ['Coffee in the city centre','Кофе в центре'],
+  'Tider er forslag. Sjekk åpningstider, billetter og kollektivtransport hos de offisielle kildene før avreise.': ['Times are suggestions. Check opening hours, tickets and public transport with the official sources before you go.','Время указано ориентировочно. Перед поездкой проверь часы работы, билеты и транспорт по официальным источникам.'],
   'Arkitektur, fjordutsikt og en gratis tur på taket.': ['Architecture, fjord views and a free rooftop walk.','Архитектура, виды на фьорд и бесплатная прогулка по крыше.'], 'Kunstmuseum i Bjørvika; et godt valg når det regner.': ['An art museum in Bjørvika, ideal for a rainy day.','Художественный музей в Бьёрвике, хороший выбор в дождь.'], 'Stor skulpturpark som er åpen hele døgnet.': ['A large sculpture park open around the clock.','Большой парк скульптур, открытый круглосуточно.'],
   'En kompakt plan rundt Bryggen, havna og utsikten fra Fløyen, med et innendørs alternativ ved regn.': ['A compact route around Bryggen, the harbour and Fløyen, with an indoor option for rain.','Компактный маршрут по Брюггену, гавани и смотровым площадкам Флёйена с вариантом на случай дождя.'],
   'Bryggen og Fløyen': ['Bryggen and Fløyen','Брюгген и Флёйен'], 'KODE og Nordnes': ['KODE and Nordnes','KODE и Норднес'], 'Frokost ved Vågen': ['Breakfast by Vågen','Завтрак у гавани Воген'], 'Bryggen og de smale passasjene': ['Bryggen and its narrow passages','Брюгген и его узкие проходы'], 'Fløibanen og tur på Fløyen': ['Fløibanen and a walk on Fløyen','Фуникулёр Fløibanen и прогулка по Флёйену'], 'Tilbake til sentrum': ['Return to the city centre','Возвращение в центр'], 'KODE kunstmuseer': ['KODE art museums','Художественные музеи KODE'], 'Lunsj ved Lille Lungegårdsvann': ['Lunch by Lille Lungegårdsvann','Обед у озера Лилле-Лунгегордсванн'], 'Gå mot Nordnes': ['Walk towards Nordnes','Прогулка к Норднесу'], 'Kaffe ved Vågen': ['Coffee by Vågen','Кофе у гавани Воген'],
@@ -952,12 +953,16 @@ function renderDetailedCityPlan(city, guide) {
   const days = Number(daysInput.value || 2);
   const selectedInterests = getSelectedInterests();
   const orderedPlaces = [...guide.places].sort((a, b) => scorePlace(b, selectedInterests) - scorePlace(a, selectedInterests));
-  const planDays = Array.from({ length: days }, (_, index) => guide.days[index] || createFlexibleDay(city, orderedPlaces, index));
+  const planDays = Array.from({ length: days }, (_, index) => {
+    const day = guide.days[index] || createFlexibleDay(city, orderedPlaces, index);
+    return customizeGuideDay(city, day, selectedInterests);
+  });
   activeCity = city;
   cityTitle.textContent = getPlaceLabel(city);
   daysBadge.textContent = dayCount(days, getLanguage());
   planSummary.textContent = guideLabel(guide.intro);
   content.innerHTML = `
+    <p class="things-guide-note">${guideLabel("Tider er forslag. Sjekk åpningstider, billetter og kollektivtransport hos de offisielle kildene før avreise.")}</p>
     <section class="things-itinerary" aria-label="Plan dag for dag">
       ${planDays.map((day, index) => renderItineraryDay(day, index)).join("")}
     </section>
@@ -968,6 +973,23 @@ function renderDetailedCityPlan(city, guide) {
   `;
   renderMiniMap(city);
   updateUrl(city);
+}
+
+function customizeGuideDay(city, day, interests) {
+  if (city !== "Oslo") return day;
+  const budget = budgetInput.value;
+  const preferOutdoors = interests.includes("nature") || budget === "low";
+  const preferPark = interests.includes("nature") || interests.includes("family");
+  const stops = day.stops.map(([time, title]) => {
+    if (title === "MUNCH eller Akershus festning") {
+      return [time, preferOutdoors ? "Akershus festning – uteområdet" : "MUNCH"];
+    }
+    if (title === "Frogner eller Bygdøy") {
+      return [time, preferPark ? "Vigelandsparken og Frognerparken" : "Bygdøy – velg museum etter åpningstid"];
+    }
+    return [time, title];
+  });
+  return { ...day, stops };
 }
 
 function getSelectedInterests() {
@@ -1001,10 +1023,12 @@ function renderItineraryDay(day, index) {
 function renderPlaceCard(place) {
   const key = `${activeCity}|${place.name}`;
   const added = selectedPlaces.has(key);
+  const matchesInterest = scorePlace(place, getSelectedInterests()) > 0;
   return `
     <article class="things-place-card${place.outside ? " is-outside" : ""}">
       <div class="things-place-visual" aria-hidden="true"><span>${place.tags.includes("nature") ? "⌁" : "⌂"}</span></div>
       <div class="things-place-body">
+        ${matchesInterest ? `<span class="things-interest-match">${guideLabel("Passer interessene dine")}</span>` : ""}
         ${place.outside ? `<span class="things-location-tag">${guideLabel("Utenfor valgt by")}</span>` : ""}
         <h4>${escapeHtml(place.name)}</h4><p>${escapeHtml(guideLabel(place.description))}</p>
         <dl><div><dt>${guideLabel("Avstand")}</dt><dd>${escapeHtml(guideLabel(place.distance))}</dd></div><div><dt>${guideLabel("Tid")}</dt><dd>${escapeHtml(guideLabel(place.duration))}</dd></div><div><dt>${guideLabel("Pris")}</dt><dd>${escapeHtml(guideLabel(place.price))}</dd></div><div><dt>${guideLabel("Passer i regn")}</dt><dd>${escapeHtml(guideLabel(place.rain))}</dd></div></dl>

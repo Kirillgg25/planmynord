@@ -413,7 +413,13 @@ app.use(
     crossOriginResourcePolicy: false
   })
 );
-app.use(express.json({ limit: "10mb" }));
+app.use('/api', require('./lib/request-security').apiOriginGuard(APP_BASE_URL));
+const standardJson = express.json({ limit: '64kb' });
+const uploadJson = express.json({ limit: '10mb' });
+app.use((req, res, next) => {
+  const upload = req.method === 'POST' && ['/api/avatar', '/api/tickets'].includes(req.path);
+  return (upload ? uploadJson : standardJson)(req, res, next);
+});
 app.use(express.urlencoded({ extended: false, limit: "8kb" }));
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/") || req.path.startsWith("/auth/")) {
@@ -927,6 +933,7 @@ async function saveUsers(users) {
   const existingRatings = database.prepare("SELECT * FROM route_ratings").all();
   const existingVpnSubscriptions = database.prepare("SELECT * FROM vpn_subscriptions").all();
   const existingVpnDevices = database.prepare("SELECT * FROM vpn_devices").all();
+  const existingVpnTrialProfiles = database.prepare("SELECT * FROM vpn_trial_profiles").all();
   const userIds = new Set(users.map((user) => user.id));
   database.exec("BEGIN");
 
@@ -986,6 +993,26 @@ async function saveUsers(users) {
           device.created_at,
           device.last_seen_at,
           device.revoked_at
+        );
+      });
+
+    const insertVpnTrialProfile = database.prepare(`
+      INSERT INTO vpn_trial_profiles (
+        id, user_id, device_id, client_email, sub_id, status, ends_at, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    existingVpnTrialProfiles
+      .filter((profile) => userIds.has(profile.user_id))
+      .forEach((profile) => {
+        insertVpnTrialProfile.run(
+          profile.id,
+          profile.user_id,
+          profile.device_id,
+          profile.client_email,
+          profile.sub_id,
+          profile.status,
+          profile.ends_at,
+          profile.created_at
         );
       });
 
@@ -1977,10 +2004,18 @@ function getPostgisPool() {
   }
 
   if (!postgisPool) {
+    const tlsEnabled = String(process.env.POSTGIS_SSL || '').toLowerCase() === 'true';
+    const connectionUrl = new URL(POSTGIS_DATABASE_URL);
+    if (tlsEnabled) {
+      // pg URL options otherwise override the explicit verified TLS configuration.
+      for (const key of ['ssl', 'sslmode', 'sslcert', 'sslkey', 'sslrootcert']) connectionUrl.searchParams.delete(key);
+    }
     postgisPool = new PgPool({
-      connectionString: POSTGIS_DATABASE_URL,
+      connectionString: connectionUrl.toString(),
       max: Number(process.env.POSTGIS_POOL_SIZE) || 4,
-      ssl: String(process.env.POSTGIS_SSL || "").toLowerCase() === "true" ? { rejectUnauthorized: false } : undefined
+      ssl: tlsEnabled
+        ? { rejectUnauthorized: true, ...(process.env.POSTGIS_CA_FILE ? { ca: fsSync.readFileSync(process.env.POSTGIS_CA_FILE, 'utf8') } : {}) }
+        : undefined
     });
   }
 
@@ -2936,8 +2971,8 @@ app.post("/api/register", authLimiter, async (req, res) => {
     return res.status(400).json({ error: "Skriv inn en gyldig e-postadresse." });
   }
 
-  if (password.length < 4) {
-    return res.status(400).json({ error: "Passordet må ha minst 4 tegn." });
+  if (!require('./lib/request-security').validNewPassword(password)) {
+    return res.status(400).json({ error: "Passordet må ha minst 9 tegn og maks 72 byte." });
   }
 
   if (!smtpConfigured) {
@@ -3183,31 +3218,77 @@ function vpnSubscriptionUrl(subId) {
   return url.toString();
 }
 
+const pendingVpnProfiles = new Map();
+
+async function provisionVpnProfile(userId, deviceId) {
+  const database = openDatabase();
+  const now = Date.now();
+  const existing = database.prepare("SELECT * FROM vpn_trial_profiles WHERE user_id = ?").get(userId);
+  const inboundResponse = await callXuiApi("inbounds/get/" + XUI_INBOUND_ID);
+  const inbound = inboundResponse.obj;
+  if (!inbound || inbound.enable === false) throw new Error("Выбранный inbound отсутствует или выключен в панели VPN.");
+  let inboundSettings = inbound.settings || {};
+  if (typeof inboundSettings === "string") { try { inboundSettings = JSON.parse(inboundSettings); } catch { inboundSettings = {}; } }
+  const clients = Array.isArray(inboundSettings.clients) ? inboundSettings.clients : [];
+  const accountPrefix = `pm-${createHash("sha256").update(userId).digest("hex").slice(0, 20)}`;
+  const belongsToAccount = (client) => typeof client.email === "string"
+    && (client.email === `${accountPrefix}@planmynord` || (client.email.startsWith(`${accountPrefix}-`) && client.email.endsWith("@planmynord")));
+  const candidates = clients.filter((client) => belongsToAccount(client) && (client.subId || (existing?.client_email === client.email && existing.sub_id)))
+    .sort((left, right) => Number(right.expiryTime || 0) - Number(left.expiryTime || 0));
+  const client = candidates.find((candidate) => candidate.email === existing?.client_email) || candidates[0];
+  const id = existing?.id || randomUUID();
+  const clientEmail = client?.email || existing?.client_email || `${accountPrefix}@planmynord`;
+  const subId = client?.subId || existing?.sub_id || randomUUID().replace(/-/g, "");
+  const subscriptionUrl = vpnSubscriptionUrl(subId);
+  const panelExpiry = Number(client?.expiryTime || 0);
+  const savedExpiry = existing?.status === "active" ? Date.parse(existing.ends_at) : 0;
+  const validExpiry = Math.max(Number.isFinite(panelExpiry) ? panelExpiry : 0, Number.isFinite(savedExpiry) ? savedExpiry : 0);
+  const expiryTime = validExpiry > now ? validExpiry : now + VPN_DURATION_DAYS * 24 * 60 * 60 * 1000;
+  const endsAt = new Date(expiryTime).toISOString();
+  const sampleFlow = clients.find((item) => item?.flow)?.flow || "";
+
+  if (client) {
+    if (client.enable === false || panelExpiry <= now || !client.subId) {
+      await callXuiApi(`clients/update/${encodeURIComponent(clientEmail)}`, {
+        method: "POST",
+        body: { ...client, subId, enable: true, expiryTime }
+      });
+    }
+  } else {
+    await callXuiApi("clients/add", {
+      method: "POST",
+      body: { client: { email: clientEmail, subId, enable: true, expiryTime, totalGB: 0, limitIp: 0, ...(sampleFlow ? { flow: sampleFlow } : {}) }, inboundIds: [XUI_INBOUND_ID] }
+    });
+  }
+
+  database.prepare(`INSERT INTO vpn_trial_profiles (id,user_id,device_id,client_email,sub_id,status,ends_at,created_at) VALUES (?,?,?,?,?,'active',?,?) ON CONFLICT(user_id) DO UPDATE SET device_id=excluded.device_id, client_email=excluded.client_email, sub_id=excluded.sub_id, status='active', ends_at=excluded.ends_at, created_at=excluded.created_at`)
+    .run(id, userId, deviceId, clientEmail, subId, endsAt, new Date(now).toISOString());
+  return { subscriptionUrl, endsAt, alreadyActive: Boolean(client && panelExpiry > now && client.enable !== false) };
+}
+
 app.post("/api/vpn/client-token", requireAuth, writeLimiter, async (req, res) => {
   const deviceId = String(req.body.deviceId || "").trim();
   if (!deviceId) return res.status(400).json({ error: "Устройство не указано." });
+  if (!canPreviewVpn(req.currentUser)) return res.status(403).json({ error: "VPN-доступ для аккаунта не активен." });
   const database = openDatabase();
   const device = database.prepare(`SELECT id FROM vpn_devices WHERE id = ? AND user_id = ? AND status = 'active'`).get(deviceId, req.currentUser.id);
   if (!device) return res.status(404).json({ error: "Активное устройство не найдено." });
   if (!VPN_PROFILE_DELIVERY_ENABLED) return res.status(503).json({ error: "Выдача VPN-профилей не настроена на сервере." });
   try {
-    const now = new Date();
-    const existing = database.prepare("SELECT * FROM vpn_trial_profiles WHERE user_id = ?").get(req.currentUser.id);
-    if (existing?.status === "active" && Date.parse(existing.ends_at) > now.getTime()) return res.json({ subscriptionUrl: vpnSubscriptionUrl(existing.sub_id), endsAt: existing.ends_at, alreadyActive: true });
-    const id = randomUUID();
-    const subId = randomUUID().replace(/-/g, "");
-    const clientEmail = `pm-${createHash("sha256").update(req.currentUser.id).digest("hex").slice(0, 20)}-${id.slice(0, 8)}@planmynord`;
-    const endsAt = new Date(now.getTime() + VPN_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
-    const inboundResponse = await callXuiApi("inbounds/get/" + XUI_INBOUND_ID);
-    const inbound = inboundResponse.obj;
-    if (!inbound || inbound.enable === false) throw new Error("Выбранный inbound отсутствует или выключен в панели VPN.");
-    let inboundSettings = inbound.settings || {};
-    if (typeof inboundSettings === "string") { try { inboundSettings = JSON.parse(inboundSettings); } catch { inboundSettings = {}; } }
-    const sampleFlow = Array.isArray(inboundSettings.clients) ? inboundSettings.clients.find((client) => client?.flow)?.flow : "";
-    await callXuiApi("clients/add", { method: "POST", body: { client: { email: clientEmail, subId, enable: true, expiryTime: Date.parse(endsAt), totalGB: 0, limitIp: 0, ...(sampleFlow ? { flow: sampleFlow } : {}) }, inboundIds: [XUI_INBOUND_ID] } });
-    database.prepare(`INSERT INTO vpn_trial_profiles (id,user_id,device_id,client_email,sub_id,status,ends_at,created_at) VALUES (?,?,?,?,?,'active',?,?) ON CONFLICT(user_id) DO UPDATE SET device_id=excluded.device_id, client_email=excluded.client_email, sub_id=excluded.sub_id, status='active', ends_at=excluded.ends_at, created_at=excluded.created_at`).run(id, req.currentUser.id, deviceId, clientEmail, subId, endsAt, now.toISOString());
-    res.status(201).json({ subscriptionUrl: vpnSubscriptionUrl(subId), endsAt });
-  } catch (error) { console.error("VPN profile provisioning failed:", error.message); res.status(502).json({ error: error.message || "Не удалось создать VPN-профиль." }); }
+    const userId = req.currentUser.id;
+    let pending = pendingVpnProfiles.get(userId);
+    if (!pending) {
+      pending = provisionVpnProfile(userId, deviceId);
+      pendingVpnProfiles.set(userId, pending);
+    }
+    const result = await pending;
+    res.status(result.alreadyActive ? 200 : 201).json(result);
+    if (pendingVpnProfiles.get(userId) === pending) pendingVpnProfiles.delete(userId);
+  } catch (error) {
+    pendingVpnProfiles.delete(req.currentUser.id);
+    console.error("VPN profile provisioning failed:", error.message);
+    res.status(502).json({ error: error.message || "Не удалось создать VPN-профиль." });
+  }
 });
 
 app.post("/api/vpn/client-token/revoke", requireAuth, writeLimiter, async (req, res) => {
