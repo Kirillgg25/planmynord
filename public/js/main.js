@@ -1,13 +1,13 @@
-import { initMap, drawRoute, redrawRouteFromCurrentLocation, findCitiesAlongCurrentRoute, findStoresForCity, findStoresAlongRoute, findHotelsForCity, focusStoreOnMap, clearActiveMapFocus, setMapStyle, findPlaceInCity, updateUserLocationOnMap, getRouteNavigationSnapshot, findTrafficSignalsAlongCurrentRoute, resizePlannerMap } from "./map.js?v=traffic-signals-3";
-import { getPublicRoutes, saveTrip, updateAuthNav } from "./auth.js?v=reliability-1";
-import { formatCurrencyFromNok, initCurrencySelector } from "./currency.js?v=planner-errors-1";
-import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=author-1";
-import { GOOGLE_MAPS_STATIC_API_KEY, getPlaceCenter } from "./mapbox-config.js";
-import { createTripPlan } from "./planner.js?v=reliability-1";
-import { extraReadyRoutes } from "./ready-routes-data.js";
-import { getRouteRecommendations } from "./recommendations.js?v=doc-fixes-1";
-import { consumePlannerDraft, routeToPlannerDraft } from "./planner-transfer.js";
-import { initPlannerDatePickers, syncPlannerDatePickers } from "./planner-date-picker.js?v=shared-ui-3";
+import { initMap, drawRoute, redrawRouteFromCurrentLocation, findCitiesAlongCurrentRoute, findStoresForCity, findStoresAlongRoute, findHotelsForCity, focusStoreOnMap, clearActiveMapFocus, setMapStyle, findPlaceInCity, updateUserLocationOnMap, getRouteNavigationSnapshot, findTrafficSignalsAlongCurrentRoute, resizePlannerMap } from "./map.js?v=js-recovery-1";
+import { getPublicRoutes, saveTrip, updateAuthNav } from "./auth.js?v=js-recovery-1";
+import { formatCurrencyFromNok, initCurrencySelector } from "./currency.js?v=js-recovery-1";
+import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=perf-1";
+import { GOOGLE_MAPS_STATIC_API_KEY, getPlaceCenter } from "./mapbox-config.js?v=js-recovery-1";
+import { createTripPlan } from "./planner.js?v=js-recovery-1";
+import { extraReadyRoutes } from "./ready-routes-data.js?v=js-recovery-1";
+import { getRouteRecommendations } from "./recommendations.js?v=js-recovery-1";
+import { consumePlannerDraft, routeToPlannerDraft } from "./planner-transfer.js?v=js-recovery-1";
+import { initPlannerDatePickers, syncPlannerDatePickers } from "./planner-date-picker.js?v=js-recovery-1";
 import {
   applyFormValues,
   getFormValues,
@@ -19,7 +19,7 @@ import {
   syncBudgetInputCurrency,
   initPlacePickers,
   updateBudgetLabel
-} from "./ui.js?v=reliability-1";
+} from "./ui.js?v=js-recovery-1";
 
 const CAR_RENTAL_URL = "https://www.hyre.no/en/flesland/";
 const mealTexts = {

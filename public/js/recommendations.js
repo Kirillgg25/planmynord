@@ -1,4 +1,4 @@
-import { routeRecommendations } from "./routes.js?v=recommend-i18n-1";
+import { routeRecommendations } from "./routes.js?v=js-recovery-1";
 
 function diffDays(startDate, endDate) {
   const start = new Date(startDate);

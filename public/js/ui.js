@@ -3,10 +3,10 @@ import {
   convertAmountToNok,
   formatCurrencyFromNok,
   getCurrencyCode
-} from "./currency.js";
-import { getPlaceLabel, placeGroups } from "./data.js";
-import { distributeRouteDays } from "./itinerary.js";
-import { getLanguage, t } from "./i18n.js?v=author-1";
+} from "./currency.js?v=js-recovery-1";
+import { getPlaceLabel, placeGroups } from "./data.js?v=js-recovery-1";
+import { distributeRouteDays } from "./itinerary.js?v=js-recovery-1";
+import { getLanguage, t } from "./i18n.js?v=perf-1";
 
 let activePlaceTarget = null;
 let activeFylkeId = null;

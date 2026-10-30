@@ -1,6 +1,6 @@
-import { getCurrentUser, updateAuthNav } from "./auth.js?v=reliability-1";
-import { getPlaceLabel, placeGroups } from "./data.js";
-import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=author-1";
+import { getCurrentUser, updateAuthNav } from "./auth.js?v=js-recovery-1";
+import { getPlaceLabel, placeGroups } from "./data.js?v=js-recovery-1";
+import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=perf-1";
 // Guide copy is translated separately from place IDs, map queries and URLs.
 const phrases = {
   'Søk etter by': ['Search cities','Поиск города'],
@@ -65,11 +65,11 @@ function dayCount(days, language) {
   const forms = language === 'ru' ? {one:'день',few:'дня',many:'дней',other:'дня'} : language === 'no' ? {one:'dag',other:'dager'} : {one:'day',other:'days'};
   return `${days} ${forms[category] || forms.other}`;
 }
-import { storePlannerDraft } from "./planner-transfer.js";
-import { MAPBOX_ACCESS_TOKEN, getPlaceCenter } from "./mapbox-config.js";
-import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
-import { enhanceSelectMenu } from "./select-menu.js?v=site-docs-selects-1";
-import { createDateRangePicker } from "./date-picker.js?v=shared-ui-3";
+import { storePlannerDraft } from "./planner-transfer.js?v=js-recovery-1";
+import { MAPBOX_ACCESS_TOKEN, getPlaceCenter } from "./mapbox-config.js?v=js-recovery-1";
+import { escapeHtml } from "./html-utils.js?v=js-recovery-1";
+import { enhanceSelectMenu } from "./select-menu.js?v=js-recovery-1";
+import { createDateRangePicker } from "./date-picker.js?v=js-recovery-1";
 import {
   createInteractiveMap,
   createLngLatBounds,
@@ -77,7 +77,7 @@ import {
   createNavigationControl,
   createPopup,
   isMapRendererAvailable
-} from "./map-engine.js?v=map-engine-2";
+} from "./map-engine.js?v=js-recovery-1";
 
 const phraseTranslations = {
   ru: {

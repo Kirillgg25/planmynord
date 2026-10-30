@@ -1,4 +1,4 @@
-import { t } from "./i18n.js?v=author-1";
+import { t } from "./i18n.js?v=perf-1";
 
 export async function registerUser({ name, email, password }) {
   return requestJson("/api/register", {

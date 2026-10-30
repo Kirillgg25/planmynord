@@ -5,9 +5,9 @@ import {
   registerUser,
   resendVerification,
   updateAuthNav
-} from "./auth.js?v=reliability-1";
-import { initCurrencySelector } from "./currency.js?v=account-oauth-1";
-import { applyTranslations, initLanguageSelector, getLanguage, t } from "./i18n.js?v=author-1";
+} from "./auth.js?v=js-recovery-1";
+import { initCurrencySelector } from "./currency.js?v=js-recovery-1";
+import { applyTranslations, initLanguageSelector, getLanguage, t } from "./i18n.js?v=perf-1";
 
 const registerForm = document.getElementById("registerForm");
 const loginForm = document.getElementById("loginForm");

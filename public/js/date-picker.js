@@ -1,4 +1,4 @@
-import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
+import { escapeHtml } from "./html-utils.js?v=js-recovery-1";
 
 export function createDateRangePicker({
   fields,

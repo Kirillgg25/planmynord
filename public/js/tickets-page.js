@@ -1,9 +1,9 @@
-import { updateAuthNav } from "./auth.js?v=reliability-1";
-import { initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=author-1";
-import { createDateRangePicker } from "./date-picker.js?v=shared-ui-3";
-import { createPopupController } from "./popup-controller.js?v=shared-ui-2";
-import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
+import { updateAuthNav } from "./auth.js?v=js-recovery-1";
+import { initCurrencySelector } from "./currency.js?v=js-recovery-1";
+import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=perf-1";
+import { createDateRangePicker } from "./date-picker.js?v=js-recovery-1";
+import { createPopupController } from "./popup-controller.js?v=js-recovery-1";
+import { escapeHtml } from "./html-utils.js?v=js-recovery-1";
 
 const form = document.getElementById("ticketSearchForm");
 const summary = document.getElementById("ticketSearchSummary");

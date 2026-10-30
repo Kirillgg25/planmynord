@@ -1,5 +1,5 @@
-import { initLanguageSelector, applyTranslations, getLanguage } from './i18n.js?v=author-1';
-import { getCurrentUser, updateAuthNav } from './auth.js?v=ticket-wallet-1';
+import { initLanguageSelector, applyTranslations, getLanguage } from './i18n.js?v=perf-1';
+import { getCurrentUser, updateAuthNav } from './auth.js?v=js-recovery-1';
 
 const copy = {
   en: {title:'Support PlanMyNord',intro:'Your support helps me develop PlanMyNord and maintain the project server. Thank you for being part of it.',amount:'Choose an amount',custom:'Your amount, NOK (10–10,000)',once:'One-time support, no automatic renewal. This is not a VPN purchase. Planning features remain available to everyone.',consent:'I accept the terms and privacy policy and understand this contribution is voluntary.',pay:'Pay by card',login:'Sign in to support the project',unavailable:'Payments are not available yet.',failed:'Could not start payment. Please try again.',busy:'Opening secure checkout…'},

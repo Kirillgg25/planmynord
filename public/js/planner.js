@@ -1,6 +1,6 @@
-﻿import { cityData } from "./data.js";
-import { cityConfig, getPlaceCenter } from "./mapbox-config.js";
-import { distributeRouteDays } from "./itinerary.js";
+import { cityData } from "./data.js?v=js-recovery-1";
+import { cityConfig, getPlaceCenter } from "./mapbox-config.js?v=js-recovery-1";
+import { distributeRouteDays } from "./itinerary.js?v=js-recovery-1";
 
 export function createTripPlan({
   start,

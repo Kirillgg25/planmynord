@@ -17,11 +17,11 @@ import {
   saveTicket,
   updateTripPublication,
   updateAuthNav
-} from "./auth.js?v=ticket-wallet-1";
-import { formatBudgetText, initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { applyTranslations, initLanguageSelector, getLanguage, t } from "./i18n.js?v=author-1";
-import { routeToPlannerDraft, storePlannerDraft } from "./planner-transfer.js";
-import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
+} from "./auth.js?v=js-recovery-1";
+import { formatBudgetText, initCurrencySelector } from "./currency.js?v=js-recovery-1";
+import { applyTranslations, initLanguageSelector, getLanguage, t } from "./i18n.js?v=perf-1";
+import { routeToPlannerDraft, storePlannerDraft } from "./planner-transfer.js?v=js-recovery-1";
+import { escapeHtml } from "./html-utils.js?v=js-recovery-1";
 
 const profileMessage = document.getElementById("profileMessage");
 const profileTitle = document.getElementById("profileTitle");

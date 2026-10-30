@@ -1,4 +1,4 @@
-import { createPopupController } from "./popup-controller.js?v=shared-ui-2";
+import { createPopupController } from "./popup-controller.js?v=js-recovery-1";
 
 const LANGUAGE_KEY = "tripplannerLanguage";
 
@@ -1903,17 +1903,21 @@ function initAnalyticsConsent() {
     window.gtag("consent", "update", { analytics_storage: "granted", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
     if (loaded) return;
     loaded = true;
-    window.gtag("js", new Date());
-    window.gtag("config", id, {
-      page_location: location.origin + location.pathname,
-      page_referrer: document.referrer ? new URL(document.referrer).origin : "",
-      allow_google_signals: false,
-      allow_ad_personalization_signals: false
-    });
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
-    document.head.append(script);
+    const loadAnalytics = () => {
+      window.gtag("js", new Date());
+      window.gtag("config", id, {
+        page_location: location.origin + location.pathname,
+        page_referrer: document.referrer ? new URL(document.referrer).origin : "",
+        allow_google_signals: false,
+        allow_ad_personalization_signals: false
+      });
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+      document.head.append(script);
+    };
+    if ("requestIdleCallback" in window) window.requestIdleCallback(loadAnalytics, { timeout: 2500 });
+    else window.setTimeout(loadAnalytics, 1200);
   };
   const disable = () => {
     window[`ga-disable-${id}`] = true;

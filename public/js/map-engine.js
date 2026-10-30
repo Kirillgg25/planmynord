@@ -1,4 +1,4 @@
-import { MAPBOX_ACCESS_TOKEN, MAP_RENDERER } from "./mapbox-config.js";
+import { MAPBOX_ACCESS_TOKEN, MAP_RENDERER } from "./mapbox-config.js?v=js-recovery-1";
 
 const MAPBOX_STYLES = {
   streets: "mapbox://styles/mapbox/streets-v12",

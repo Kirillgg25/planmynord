@@ -1,5 +1,5 @@
-import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
-import { createPopupController } from "./popup-controller.js?v=shared-ui-2";
+import { escapeHtml } from "./html-utils.js?v=js-recovery-1";
+import { createPopupController } from "./popup-controller.js?v=js-recovery-1";
 
 export function enhanceSelectMenu(select) {
   if (!select || select.dataset.selectMenuReady === "true") return null;

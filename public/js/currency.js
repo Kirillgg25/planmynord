@@ -1,4 +1,4 @@
-import { createPopupController } from "./popup-controller.js?v=shared-ui-2";
+import { createPopupController } from "./popup-controller.js?v=js-recovery-1";
 
 const STORAGE_KEY = "tripplannerCurrency";
 

@@ -1,9 +1,9 @@
-import { getPublicRoutes, getRouteRatings, rateRoute, saveTrip, updateAuthNav } from "./auth.js?v=reliability-1";
-import { formatBudgetText, initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=author-1";
-import { routeToPlannerDraft, storePlannerDraft } from "./planner-transfer.js";
-import { extraReadyRoutes } from "./ready-routes-data.js";
-import { enhanceSelectMenu } from "./select-menu.js?v=route-filter-menu-1";
+import { getPublicRoutes, getRouteRatings, rateRoute, saveTrip, updateAuthNav } from "./auth.js?v=js-recovery-1";
+import { formatBudgetText, initCurrencySelector } from "./currency.js?v=js-recovery-1";
+import { getLanguage, initLanguageSelector, t } from "./i18n.js?v=perf-1";
+import { routeToPlannerDraft, storePlannerDraft } from "./planner-transfer.js?v=js-recovery-1";
+import { extraReadyRoutes } from "./ready-routes-data.js?v=js-recovery-1";
+import { enhanceSelectMenu } from "./select-menu.js?v=js-recovery-1";
 
 const readyRoutes = [
   {

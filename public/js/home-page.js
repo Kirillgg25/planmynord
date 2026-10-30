@@ -1,6 +1,5 @@
-import { updateAuthNav } from "./auth.js?v=reliability-1";
-import { initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { applyTranslations, initLanguageSelector } from "./i18n.js?v=author-1";
+import { initCurrencySelector } from "./currency.js?v=js-recovery-1";
+import { initLanguageSelector } from "./i18n.js?v=perf-1";
 
 const legacyCleanRoute = {
   "/planner": "/planner.html",
@@ -22,8 +21,20 @@ if (legacyCleanRoute) {
 initCurrencySelector();
 initLanguageSelector();
 initHomeHeader();
-applyTranslations();
-updateAuthNav();
+
+const scheduleWhenIdle = (callback) => {
+  if ("requestIdleCallback" in window) window.requestIdleCallback(callback, { timeout: 1800 });
+  else window.setTimeout(callback, 900);
+};
+
+// Authentication status is useful in the header, but it is not needed to paint the page.
+window.addEventListener("load", () => scheduleWhenIdle(async () => {
+  const { updateAuthNav } = await import("./auth.js?v=js-recovery-1");
+  await updateAuthNav();
+}), { once: true });
+
+// The help widget is secondary UI; load it after the initial page resources settle.
+window.addEventListener("load", () => scheduleWhenIdle(() => import("./support-chat.js?v=js-recovery-1")), { once: true });
 
 function initHomeHeader() {
   const header = document.querySelector(".topbar");

@@ -5,7 +5,7 @@ import {
   getCityConfig,
   getPlaceCenter,
   isMapboxConfigured
-} from "./mapbox-config.js";
+} from "./mapbox-config.js?v=js-recovery-1";
 import {
   createInteractiveMap,
   createLngLatBounds,
@@ -15,8 +15,8 @@ import {
   getMapStyleUrl,
   hasMapStyle,
   isMapRendererAvailable
-} from "./map-engine.js?v=map-engine-2";
-import { addManualBuildingOverrides, getBuildingExtrusionPaint } from "./building-style.js?v=flat-map-1";
+} from "./map-engine.js?v=js-recovery-1";
+import { addManualBuildingOverrides, getBuildingExtrusionPaint } from "./building-style.js?v=js-recovery-1";
 
 const ROUTE_SOURCE_ID = "planner-route";
 const ROUTE_LINE_ID = "planner-route-line";

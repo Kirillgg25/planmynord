@@ -1,5 +1,5 @@
-import { getLanguage, t } from "./i18n.js?v=author-1";
-import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
+import { getLanguage, t } from "./i18n.js?v=perf-1";
+import { escapeHtml } from "./html-utils.js?v=js-recovery-1";
 
 const STORAGE_KEY = "tripplannerSupportHistory";
 const MAX_HISTORY = 8;

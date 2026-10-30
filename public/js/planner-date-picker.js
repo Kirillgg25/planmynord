@@ -1,5 +1,5 @@
-import { createDateRangePicker } from "./date-picker.js?v=shared-ui-3";
-import { getLanguage } from "./i18n.js?v=author-1";
+import { createDateRangePicker } from "./date-picker.js?v=js-recovery-1";
+import { getLanguage } from "./i18n.js?v=perf-1";
 
 let pickerController;
 

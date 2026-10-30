@@ -1,6 +1,6 @@
-import { updateAuthNav } from "./auth.js";
-import { initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { applyTranslations, getLanguage, initLanguageSelector } from "./i18n.js?v=author-1";
+import { updateAuthNav } from "./auth.js?v=js-recovery-1";
+import { initCurrencySelector } from "./currency.js?v=js-recovery-1";
+import { applyTranslations, getLanguage, initLanguageSelector } from "./i18n.js?v=perf-1";
 
 const CONTACT_LINK = '<a href="mailto:kyrylojobb@gmail.com">kyrylojobb@gmail.com</a>';
 

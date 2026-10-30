@@ -10,9 +10,16 @@
   <meta property="og:title" content="PlanMyNord — Norway Trip Planner" />
   <meta property="og:description" content="Planlegg en realistisk Norgesreise med dagsplan, kj&oslash;retid og kostnadsestimat." />
   <meta property="og:url" content="https://planmynord.com/" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+  <meta property="og:site_name" content="PlanMyNord" />
+  <meta property="og:image" content="https://planmynord.com/assets/norway-social-card-1200x630.webp?v=social-1" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Fjordlandskap og svingete vei i Norge" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PlanMyNord — Norway Trip Planner" />
+  <meta name="twitter:description" content="Planlegg en realistisk Norgesreise med dagsplan, kj&oslash;retid og kostnadsestimat." />
+  <meta name="twitter:image" content="https://planmynord.com/assets/norway-social-card-1200x630.webp?v=social-1" />
+  <meta name="twitter:image:alt" content="Fjordlandskap og svingete vei i Norge" />
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -26,15 +33,15 @@
     }
   </script>
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
-  <link rel="stylesheet" href="style.css?v=analytics-1" />
-  <script type="module" src="./js/home-page.js?v=author-1"></script>
+  <link rel="stylesheet" href="style.css?v=beta-1" />
+  <script type="module" src="./js/home-page.js?v=perf-1"></script>
 </head>
 <body data-title-key="home.title">
   <header class="topbar">
     <a class="logo" href="/" aria-label="PlanMyNord — forsiden">
       <img src="assets/logo.svg" alt="PlanMyNord" />
       <span>PlanMyNord</span>
-    </a>
+    <span class="beta-badge" aria-label="Beta">BETA</span></a>
     <a class="home-mobile-plan" href="planner.html" data-i18n="nav.plan">Planlegg</a>
     <nav id="homeNavigation" class="topnav" aria-label="Hovedmeny">
       <a href="index.html" data-i18n="nav.home">Главная</a>
@@ -77,7 +84,7 @@
           <span class="home-route-type" data-i18n="home.demoTransport">На автомобиле</span>
         </div>
         <div class="home-route-board" role="img" aria-label="Oslo til Flåm og Bergen langs fjorden">
-          <img class="home-route-photo" src="assets/norway-route-card-v2.webp" alt="Vei langs en norsk fjord" />
+          <img class="home-route-photo" src="assets/home-route-425.webp?v=home-1" srcset="assets/home-route-425.webp?v=home-1 425w, assets/home-route-850.webp?v=home-1 850w" sizes="(max-width: 620px) calc(100vw - 24px), (max-width: 980px) 92vw, 600px" width="425" height="284" fetchpriority="high" alt="Vei langs en norsk fjord" />
           <div class="home-route-shade"></div>
           <svg class="home-route-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
             <path class="home-route-halo" d="M 82 76 C 70 61, 65 38, 53 28 S 30 42, 18 68" />
@@ -147,7 +154,6 @@
       <a href="refund.html" data-i18n="footer.refund">Angrerett</a>
     </nav>
   </footer>
-  <script type="module" src="./js/support-chat.js?v=author-1"></script>
 </body>
 </html>
 

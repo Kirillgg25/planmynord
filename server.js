@@ -3124,14 +3124,14 @@ app.post("/api/login", authLimiter, async (req, res) => {
 
 app.get("/api/me", async (req, res) => {
   if (!req.session.userId) {
-    return res.status(401).json({ user: null });
+    return res.json({ user: null });
   }
 
   const { user } = await getCurrentUserRecord(req.session.userId);
 
   if (!user) {
     req.session.destroy(() => {});
-    return res.status(401).json({ user: null });
+    return res.json({ user: null });
   }
 
   res.json({ user: publicUser(user) });

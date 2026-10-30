@@ -1,5 +1,5 @@
-import { getLanguage } from './i18n.js?v=author-1';
-import { getCurrentUser } from './auth.js?v=ticket-wallet-1';
+import { getLanguage } from './i18n.js?v=perf-1';
+import { getCurrentUser } from './auth.js?v=js-recovery-1';
 
 const labels = {
   ru: ['99 NOK / 30 дней', 'До 5 устройств. Разовая оплата, без автопродления.', 'Оплата пока недоступна', 'Ссылка для ручного подключения появится после настройки 3x-ui. VPN пока недоступен.'],

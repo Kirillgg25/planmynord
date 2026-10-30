@@ -8,10 +8,10 @@ import {
   updateAdminUserRole,
   updateAdminUserVip,
   updateAuthNav
-} from "./auth.js?v=reliability-1";
-import { formatBudgetText, initCurrencySelector } from "./currency.js?v=currency-menu-1";
-import { applyTranslations, getLanguage, initLanguageSelector, t } from "./i18n.js?v=author-1";
-import { escapeHtml } from "./html-utils.js?v=shared-ui-2";
+} from "./auth.js?v=js-recovery-1";
+import { formatBudgetText, initCurrencySelector } from "./currency.js?v=js-recovery-1";
+import { applyTranslations, getLanguage, initLanguageSelector, t } from "./i18n.js?v=perf-1";
+import { escapeHtml } from "./html-utils.js?v=js-recovery-1";
 
 const adminMessage = document.getElementById("adminMessage");
 const adminPageContent = document.getElementById("adminPageContent");

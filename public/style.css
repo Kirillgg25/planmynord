@@ -1,4 +1,4 @@
-﻿* {
+* {
   box-sizing: border-box;
 }
 
@@ -7622,7 +7622,7 @@ body[data-title-key="home.title"] {
   --home-navy: #071827;
   --home-accent: #2563eb;
   --home-accent-dark: #1d4ed8;
-  font-family: "Manrope", Arial, sans-serif;
+  font-family: "Manrope", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   background: #edf4f7;
 }
 
@@ -8309,3 +8309,7 @@ body[data-title-key="index.title"] .day-card-actions .route-city-link {
     grid-column: auto;
   }
 }
+
+
+/* Shared product status badge */
+.topbar .logo .beta-badge { display: inline-flex; align-items: center; padding: 3px 7px; margin-left: 1px; border: 1px solid rgba(147, 197, 253, .32); border-radius: 999px; background: rgba(37, 99, 235, .18); color: #bfdbfe; font-size: 9px; font-weight: 800; letter-spacing: .08em; line-height: 1; }

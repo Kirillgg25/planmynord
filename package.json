@@ -7,6 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "css:minify": "node scripts/minify-css.cjs",
+    "css:home": "node scripts/build-home-css.cjs && node scripts/minify-css.cjs public/home.css public/home.min.css",
+    "js:minify:i18n": "node scripts/minify-i18n.cjs",
     "oidc:keygen": "node scripts/generate-oidc-keys.cjs",
     "backup:r2": "node scripts/backup-r2.js",
     "test:static-security": "node scripts/check-static-security.cjs"
